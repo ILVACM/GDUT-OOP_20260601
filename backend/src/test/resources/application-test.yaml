@@ -1,0 +1,50 @@
+# ============================================================
+# 测试 profile
+# 激活方式：@ActiveProfiles("test") 或 SPRING_PROFILES_ACTIVE=test
+# 数据库：${user.dir}/backend/target/test-data/test.sqlite（mvn clean 时随 target 清理）
+#
+# ddl-auto=none：禁用 Hibernate 自动建表，使用 schema/*.sql（从 scripts/ 复制）作为
+# 真实 DDL 来源。这样可保留 CHECK / UNIQUE INDEX / FOREIGN KEY 等 DDL 级约束，
+# 与生产环境（同样依赖 scripts/*.sql）保持一致。
+# ============================================================
+spring:
+  autoconfigure:
+    # 排除 Spring Data JDBC 自动配置：spring-boot-test 传递引入了 spring-boot-starter-data-jdbc-test，
+    # 会触发 DataJdbcRepositoriesAutoConfiguration，它要求 JdbcDialect bean，但 SQLite 不在 Spring Data JDBC
+    # 支持的 Dialect 列表中。本项目仅使用 JPA，不需要 Data JDBC。
+    exclude:
+      - org.springframework.boot.data.jdbc.autoconfigure.DataJdbcRepositoriesAutoConfiguration
+
+  sql:
+    init:
+      mode: always
+      # schema-locations：执行 DDL（覆盖 ddl-auto=none，确保启动时已建表）
+      # data-locations：可空，本项目无初始数据
+      schema-locations: classpath:schema/*.sql
+      continue-on-error: false
+      platform: test
+
+  datasource:
+    url: jdbc:sqlite:${user.dir}/target/test-data/test.sqlite
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 1
+      minimum-idle: 0
+      # 测试环境也开启外键约束，验证物理外键行为
+      connection-init-sql: |
+        PRAGMA foreign_keys = ON;
+        PRAGMA busy_timeout = 5000;
+
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: none
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: false
+        # 对所有 SQL 标识符加双引号转义，规避 SQLite 关键字冲突（score.all 等）
+        globally_quoted_identifiers: true
+        jdbc:
+          time_zone: UTC

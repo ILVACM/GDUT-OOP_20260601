@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: backend
+
+  # ============================================================
+  # 数据源与 PRAGMA
+  # 参考：wiki/references/SQLite-Optimization.md §2
+  # ============================================================
+  datasource:
+    url: jdbc:sqlite:${user.dir}/../Data/English.sqlite
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      # SQLite 单文件，连接池无需过大
+      maximum-pool-size: 5
+      minimum-idle: 1
+      # 每次新建连接时执行的初始化 SQL
+      # - foreign_keys = ON 必开（默认关闭）
+      # - journal_mode = WAL 提升并发读
+      # - synchronous = NORMAL 平衡性能与安全
+      # - busy_timeout = 5000 写锁冲突等待
+      # - temp_store = MEMORY 临时表入内存
+      connection-init-sql: |
+        PRAGMA foreign_keys = ON;
+        PRAGMA journal_mode = WAL;
+        PRAGMA synchronous = NORMAL;
+        PRAGMA busy_timeout = 5000;
+        PRAGMA temp_store = MEMORY;
+
+  # ============================================================
+  # JPA / Hibernate
+  # 参考：wiki/references/SQLite-Optimization.md §2
+  # 严禁使用 update/create：所有 DDL 必须先在 scripts/*.sql 编写并人工执行
+  # ============================================================
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: false
+        # 对所有 SQL 标识符加双引号转义，规避 SQLite 关键字冲突（score.all 等）
+        globally_quoted_identifiers: true
+        jdbc:
+          time_zone: UTC
+          batch_size: 30
+        order_inserts: true
+        order_updates: true
+
+logging:
+  level:
+    org.hibernate.SQL: INFO
