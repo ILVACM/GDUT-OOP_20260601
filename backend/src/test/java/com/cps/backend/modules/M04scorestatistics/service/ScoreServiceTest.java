@@ -109,6 +109,23 @@ class ScoreServiceTest {
     }
 
     @Test
+    @DisplayName("ScoreVO 包含 userName")
+    void scoreVOContainsUserName() {
+        // 注册一个用户
+        UserVO testUser = userService.register(new RegisterReq(
+            "scoretestuser", "password123", UserType.student));
+
+        ExamVO exam = createRunningExam();
+        ExamSubmitReq req = new ExamSubmitReq(exam.id(),
+            List.of(new AnswerItem(exam.questionItems().get(0).questionId(), true)));
+        ScoreVO vo = scoreService.submitExam(req, testUser.id());
+
+        // 验证 ScoreVO 中 userName 不为 null 且与注册用户名一致
+        assertNotNull(vo.userName());
+        assertEquals("scoretestuser", vo.userName());
+    }
+
+    @Test
     @DisplayName("提交答卷 - 判断题错误")
     void submitJudgeWrong() {
         ExamVO exam = createRunningExam();

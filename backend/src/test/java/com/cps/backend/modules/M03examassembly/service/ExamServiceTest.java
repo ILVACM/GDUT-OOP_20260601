@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.cps.backend.modules.M02questionbank.repository.QuestionRepository;
+
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import jakarta.persistence.EntityManager;
@@ -33,6 +36,9 @@ class ExamServiceTest {
 
     @Autowired
     private QuestionService questionService;
+
+    @Autowired
+    private QuestionRepository questionRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -239,5 +245,140 @@ class ExamServiceTest {
 
         QuestionVO afterQ = questionService.findById(q.id());
         assertEquals(1, afterQ.use());
+    }
+
+    // ===== 考试编辑功能测试 =====
+
+    @Test
+    @DisplayName("编辑草稿考试成功")
+    void editDraftExamSuccess() {
+        // 创建两道测试题目
+        QuestionVO question1 = questionService.create(new QuestionCreateReq(
+            QuestionType.Judge, "原始题目", 0, judgeAnswerJson()));
+        QuestionVO question2 = questionService.create(new QuestionCreateReq(
+            QuestionType.Judge, "新题目", 0, judgeAnswerJson()));
+
+        // 创建草稿考试
+        ExamCreateManualReq createReq = new ExamCreateManualReq(
+            "原始考试", "2099-01-01T09:00:00", "2099-01-01T11:00:00",
+            List.of(new ExamQuestionItemReq(question1.id(), 10))
+        );
+        ExamVO created = examService.createManual(createReq);
+
+        // 编辑考试
+        ExamCreateManualReq editReq = new ExamCreateManualReq(
+            "修改后考试", "2099-02-01T09:00:00", "2099-02-01T11:00:00",
+            List.of(new ExamQuestionItemReq(question2.id(), 20))
+        );
+        ExamVO edited = examService.edit(created.id(), editReq);
+
+        assertThat(edited.exam()).isEqualTo("修改后考试");
+        assertThat(edited.starttime()).isEqualTo("2099-02-01T09:00:00");
+        assertThat(edited.questionItems()).hasSize(1);
+        assertThat(edited.questionItems().getFirst().questionId()).isEqualTo(question2.id());
+    }
+
+    @Test
+    @DisplayName("编辑非草稿考试被拒绝")
+    void editNonDraftExamRejected() {
+        QuestionVO question1 = questionService.create(new QuestionCreateReq(
+            QuestionType.Judge, "测试题目1", 0, judgeAnswerJson()));
+        QuestionVO question2 = questionService.create(new QuestionCreateReq(
+            QuestionType.Judge, "测试题目2", 0, judgeAnswerJson()));
+
+        ExamCreateManualReq createReq = new ExamCreateManualReq(
+            "测试考试", "2099-01-01T09:00:00", "2099-01-01T11:00:00",
+            List.of(new ExamQuestionItemReq(question1.id(), 10))
+        );
+        ExamVO created = examService.createManual(createReq);
+        examService.publish(created.id());
+
+        ExamCreateManualReq editReq = new ExamCreateManualReq(
+            "修改考试", "2099-02-01T09:00:00", "2099-02-01T11:00:00",
+            List.of(new ExamQuestionItemReq(question2.id(), 20))
+        );
+
+        assertThatThrownBy(() -> examService.edit(created.id(), editReq))
+            .isInstanceOf(BusinessException.class)
+            .satisfies(ex -> assertThat(((BusinessException) ex).getCode()).isEqualTo(4303));
+    }
+
+    @Test
+    @DisplayName("编辑考试时题目不存在被拒绝")
+    void editExamWithNonExistentQuestionRejected() {
+        QuestionVO question1 = questionService.create(new QuestionCreateReq(
+            QuestionType.Judge, "测试题目1", 0, judgeAnswerJson()));
+
+        ExamCreateManualReq createReq = new ExamCreateManualReq(
+            "测试考试", "2099-01-01T09:00:00", "2099-01-01T11:00:00",
+            List.of(new ExamQuestionItemReq(question1.id(), 10))
+        );
+        ExamVO created = examService.createManual(createReq);
+
+        ExamCreateManualReq editReq = new ExamCreateManualReq(
+            "修改考试", "2099-02-01T09:00:00", "2099-02-01T11:00:00",
+            List.of(new ExamQuestionItemReq(99999, 20))
+        );
+
+        assertThatThrownBy(() -> examService.edit(created.id(), editReq))
+            .isInstanceOf(BusinessException.class)
+            .satisfies(ex -> assertThat(((BusinessException) ex).getCode()).isEqualTo(4301));
+    }
+
+    @Test
+    @DisplayName("编辑考试时use统计正确调整")
+    void editExamUseStatisticsAdjusted() {
+        // 创建两道测试题目
+        QuestionVO question1 = questionService.create(new QuestionCreateReq(
+            QuestionType.Judge, "旧题目", 0, judgeAnswerJson()));
+        QuestionVO question2 = questionService.create(new QuestionCreateReq(
+            QuestionType.Judge, "新题目", 0, judgeAnswerJson()));
+
+        // 创建草稿考试，使用 question1
+        ExamCreateManualReq createReq = new ExamCreateManualReq(
+            "测试考试", "2099-01-01T09:00:00", "2099-01-01T11:00:00",
+            List.of(new ExamQuestionItemReq(question1.id(), 10))
+        );
+        ExamVO created = examService.createManual(createReq);
+
+        entityManager.flush();
+        entityManager.clear();
+        int question1UseBefore = questionRepository.findById(question1.id()).get().getUse();
+        int question2UseBefore = questionRepository.findById(question2.id()).get().getUse();
+
+        // 编辑考试：移除 question1，新增 question2
+        ExamCreateManualReq editReq = new ExamCreateManualReq(
+            "修改考试", "2099-01-01T09:00:00", "2099-01-01T11:00:00",
+            List.of(new ExamQuestionItemReq(question2.id(), 20))
+        );
+        examService.edit(created.id(), editReq);
+
+        // question1 use 应减1，question2 use 应加1
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(questionRepository.findById(question1.id()).get().getUse()).isEqualTo(question1UseBefore - 1);
+        assertThat(questionRepository.findById(question2.id()).get().getUse()).isEqualTo(question2UseBefore + 1);
+    }
+
+    @Test
+    @DisplayName("编辑考试时间无效被拒绝")
+    void editExamInvalidTimeRejected() {
+        QuestionVO question1 = questionService.create(new QuestionCreateReq(
+            QuestionType.Judge, "测试题目1", 0, judgeAnswerJson()));
+
+        ExamCreateManualReq createReq = new ExamCreateManualReq(
+            "测试考试", "2099-01-01T09:00:00", "2099-01-01T11:00:00",
+            List.of(new ExamQuestionItemReq(question1.id(), 10))
+        );
+        ExamVO created = examService.createManual(createReq);
+
+        ExamCreateManualReq editReq = new ExamCreateManualReq(
+            "修改考试", "2099-01-01T11:00:00", "2099-01-01T09:00:00", // endtime < starttime
+            List.of(new ExamQuestionItemReq(question1.id(), 10))
+        );
+
+        assertThatThrownBy(() -> examService.edit(created.id(), editReq))
+            .isInstanceOf(BusinessException.class)
+            .satisfies(ex -> assertThat(((BusinessException) ex).getCode()).isEqualTo(4300));
     }
 }

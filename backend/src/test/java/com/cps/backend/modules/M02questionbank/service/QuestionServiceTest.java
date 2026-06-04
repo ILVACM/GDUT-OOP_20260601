@@ -4,6 +4,9 @@ import com.cps.backend.common.exception.BusinessException;
 import com.cps.backend.modules.M02questionbank.dto.*;
 import com.cps.backend.modules.M02questionbank.enums.QuestionType;
 import com.cps.backend.modules.M02questionbank.repository.QuestionRepository;
+import com.cps.backend.modules.M03examassembly.dto.ExamCreateManualReq;
+import com.cps.backend.modules.M03examassembly.dto.ExamQuestionItemReq;
+import com.cps.backend.modules.M03examassembly.service.ExamService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
 // 参考 M02-Question-Bank.md §8 业务规则
@@ -28,6 +33,9 @@ class QuestionServiceTest {
 
     @Autowired
     private QuestionRepository questionRepository;
+
+    @Autowired
+    private ExamService examService;
 
     @Autowired
     private EntityManager entityManager;
@@ -211,5 +219,29 @@ class QuestionServiceTest {
         assertEquals(1, after.use());
         assertEquals(1, after.correct());
         assertEquals(1.0, after.accuracy());
+    }
+
+    @Test
+    @DisplayName("删除被考试引用的题目仍可成功删除")
+    void deleteReferencedQuestionStillSucceeds() {
+        // 创建题目
+        QuestionVO question = questionService.create(new QuestionCreateReq(
+            QuestionType.Judge, "判断题", 0, judgeAnswerJson()));
+
+        // 创建引用该题目的考试
+        ExamCreateManualReq examReq = new ExamCreateManualReq(
+            "引用考试",
+            "2099-01-01T09:00:00",
+            "2099-01-01T11:00:00",
+            List.of(new ExamQuestionItemReq(question.id(), 10))
+        );
+        examService.createManual(examReq);
+
+        // 删除被引用的题目（应成功，不抛异常）
+        assertThatCode(() -> questionService.delete(question.id())).doesNotThrowAnyException();
+
+        // 验证题目已被删除
+        assertThatThrownBy(() -> questionService.findById(question.id()))
+            .isInstanceOf(BusinessException.class);
     }
 }

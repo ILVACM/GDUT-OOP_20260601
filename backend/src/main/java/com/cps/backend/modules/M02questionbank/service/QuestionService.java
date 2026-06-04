@@ -5,9 +5,11 @@ import com.cps.backend.modules.M02questionbank.dto.*;
 import com.cps.backend.modules.M02questionbank.entity.Question;
 import com.cps.backend.modules.M02questionbank.enums.QuestionType;
 import com.cps.backend.modules.M02questionbank.repository.QuestionRepository;
+import com.cps.backend.modules.M03examassembly.repository.ExamRepository;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,12 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 // 参考 M02-Question-Bank.md §7/§8/§9
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class QuestionService {
 
     private final QuestionRepository questionRepository;
     private final ObjectMapper objectMapper;
+    private final com.cps.backend.modules.M03examassembly.repository.ExamRepository examRepository;
 
     // 参考 M02-Question-Bank.md §8 业务规则5 — 答案强校验
     @Transactional(rollbackFor = Exception.class)
@@ -90,6 +94,19 @@ public class QuestionService {
         if (!questionRepository.existsById(id)) {
             throw new BusinessException(4201, "题目不存在");
         }
+        // 参考 M02-Question-Bank.md §8 业务规则3 — 删除被引用题目的警告
+        List<com.cps.backend.modules.M03examassembly.entity.Exam> allExams = examRepository.findAll();
+        boolean isReferenced = allExams.stream().anyMatch(exam -> {
+            try {
+                String qs = exam.getQuestionSum();
+                return qs != null && qs.contains("\"questionId\":" + id);
+            } catch (Exception e) {
+                return false;
+            }
+        });
+        if (isReferenced) {
+            log.warn("题目 id={} 已被考试引用，删除后历史考试快照不受影响但统计将停留在删除时", id);
+        }
         questionRepository.deleteById(id);
     }
 
@@ -108,6 +125,15 @@ public class QuestionService {
         int updated = questionRepository.incrementCorrect(questionId);
         if (updated == 0) {
             throw new BusinessException(4201, "题目不存在，无法更新统计");
+        }
+    }
+
+    // 参考 M03-Exam-Assembly.md §3.3 — 考试编辑时回退 use 统计
+    @Transactional(rollbackFor = Exception.class)
+    public void decrementUse(Integer questionId) {
+        int updated = questionRepository.decrementUse(questionId);
+        if (updated == 0) {
+            throw new BusinessException(4201, "题目不存在或use已为0，无法回退统计");
         }
     }
 

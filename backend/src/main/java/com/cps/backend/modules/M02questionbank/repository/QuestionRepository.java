@@ -76,4 +76,13 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     @Modifying
     @Query("UPDATE Question q SET q.correct = q.correct + 1 WHERE q.id = :id")
     int incrementCorrect(@Param("id") Integer id);
+
+    /**
+     * 考试编辑时回退 use 统计，{@code use -= 1}。
+     * <p>仅当 {@code use > 0} 时才执行更新，防止出现负数违反 DB CHECK。</p>
+     * <p>参考 M03-Exam-Assembly.md §3.3 — 考试编辑时回退 use 统计。</p>
+     */
+    @Modifying
+    @Query("UPDATE Question q SET q.use = q.use - 1 WHERE q.id = :id AND q.use > 0")
+    int decrementUse(@Param("id") Integer id);
 }

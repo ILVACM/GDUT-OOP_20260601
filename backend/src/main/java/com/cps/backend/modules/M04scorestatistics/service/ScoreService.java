@@ -1,6 +1,7 @@
 package com.cps.backend.modules.M04scorestatistics.service;
 
 import com.cps.backend.common.exception.BusinessException;
+import com.cps.backend.modules.M01userauth.repository.UserRepository;
 import com.cps.backend.modules.M02questionbank.dto.SingleChoiceAnswer;
 import com.cps.backend.modules.M02questionbank.dto.MultipleChoiceAnswer;
 import com.cps.backend.modules.M02questionbank.dto.JudgeAnswer;
@@ -39,6 +40,7 @@ public class ScoreService {
     private final QuestionService questionService;
     private final ExamService examService;
     private final ObjectMapper objectMapper;
+    private final com.cps.backend.modules.M01userauth.repository.UserRepository userRepository;
 
     // 参考 M04-Score-Statistics.md §3.2 — 答题提交与判分
     @Transactional(rollbackFor = Exception.class)
@@ -454,7 +456,9 @@ public class ScoreService {
         return new ScoreVO(
             score.getId(),
             score.getUser(),
-            null, // userName 需跨模块查 user 表，Controller 层补充
+            userRepository.findById(score.getUser())
+                .map(com.cps.backend.modules.M01userauth.entity.User::getName)
+                .orElse(null),
             score.getExam(),
             exam != null ? exam.getExam() : null,
             score.getAll(),

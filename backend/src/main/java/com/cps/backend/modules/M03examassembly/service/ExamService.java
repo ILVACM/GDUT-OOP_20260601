@@ -204,6 +204,70 @@ public class ExamService {
         return toVO(saved);
     }
 
+    // 参考 M03-Exam-Assembly.md §7 业务规则1 — 草稿可改、发布后不可改
+    @Transactional(rollbackFor = Exception.class)
+    public ExamVO edit(Integer id, ExamCreateManualReq req) {
+        Exam exam = examRepository.findById(id)
+            .orElseThrow(() -> new BusinessException(4301, "考试不存在"));
+
+        // 1. 仅 draft 状态可编辑
+        if (exam.getStatus() != ExamStatus.draft) {
+            throw new BusinessException(4303, "仅草稿状态可编辑");
+        }
+
+        // 2. 校验时间
+        validateTimeWindow(req.starttime(), req.endtime());
+
+        // 3. 校验所有 questionId 存在
+        List<Integer> questionIds = req.items().stream().map(ExamQuestionItemReq::questionId).toList();
+        List<Question> questions = questionRepository.findAllById(questionIds);
+        if (questions.size() != questionIds.size()) {
+            throw new BusinessException(4301, "部分题目不存在");
+        }
+
+        // 4. 构造新的 question_sum 快照
+        Map<Integer, Question> qMap = questions.stream()
+            .collect(Collectors.toMap(Question::getId, q -> q));
+        List<QuestionSumItem> items = req.items().stream()
+            .map(item -> new QuestionSumItem(
+                item.questionId(),
+                item.score(),
+                qMap.get(item.questionId()).getType()
+            ))
+            .toList();
+        int totalScore = items.stream().mapToInt(QuestionSumItem::score).sum();
+        QuestionSum questionSum = new QuestionSum(1, items, items.size(), totalScore);
+
+        // 5. 处理 use 统计：旧题目 decrement，新题目 increment
+        QuestionSum oldSum = parseQuestionSum(exam.getQuestionSum());
+        Set<Integer> oldQuestionIds = oldSum.items().stream()
+            .map(QuestionSumItem::questionId).collect(Collectors.toSet());
+        Set<Integer> newQuestionIds = items.stream()
+            .map(QuestionSumItem::questionId).collect(Collectors.toSet());
+
+        // 移除的题目 use -= 1
+        for (Integer qId : oldQuestionIds) {
+            if (!newQuestionIds.contains(qId)) {
+                questionService.decrementUse(qId);
+            }
+        }
+        // 新增的题目 use += 1
+        for (Integer qId : newQuestionIds) {
+            if (!oldQuestionIds.contains(qId)) {
+                questionService.incrementUse(qId);
+            }
+        }
+
+        // 6. 更新 exam
+        exam.setExam(req.exam());
+        exam.setStarttime(req.starttime());
+        exam.setEndtime(req.endtime());
+        exam.setQuestionSum(toJson(questionSum));
+        Exam saved = examRepository.save(exam);
+
+        return toVO(saved);
+    }
+
     // 参考 M03-Exam-Assembly.md §7 业务规则5 — 仅 draft 可删除
     @Transactional(rollbackFor = Exception.class)
     public void delete(Integer id) {

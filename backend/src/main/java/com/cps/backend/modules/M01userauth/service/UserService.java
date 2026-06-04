@@ -5,6 +5,7 @@ import com.cps.backend.modules.M01userauth.dto.*;
 import com.cps.backend.modules.M01userauth.entity.User;
 import com.cps.backend.modules.M01userauth.enums.UserType;
 import com.cps.backend.modules.M01userauth.repository.UserRepository;
+import com.cps.backend.modules.M04scorestatistics.repository.ScoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +23,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final ScoreRepository scoreRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // 参考 M01-User-Auth.md §7 业务规则1 — 用户名唯一性
@@ -29,6 +31,10 @@ public class UserService {
     public UserVO register(RegisterReq req) {
         if (userRepository.existsByName(req.name())) {
             throw new BusinessException(4101, "用户名已存在");
+        }
+        // 参考 M01-User-Auth.md §2 权限矩阵 — 仅学生可自助注册
+        if (req.type() != UserType.student) {
+            throw new BusinessException(4103, "仅支持学生自助注册，教师/管理员请由管理员创建");
         }
         User user = new User();
         user.setName(req.name());
@@ -147,8 +153,12 @@ public class UserService {
                 throw new BusinessException(4103, "不能删除最后一个管理员");
             }
         }
-        // TODO: 检查关联未结束考试/未批改答卷，如有则禁用而非删除
-        // 当前简化实现：直接删除（ScoreRepository 跨模块依赖待 M04 完善后补充）
+        // 参考 M01-User-Auth.md §7 业务规则4 — 删除用户级联：有考试记录则禁用而非删除
+        if (!scoreRepository.findByUser(id).isEmpty()) {
+            user.setStatus(0);
+            userRepository.save(user);
+            throw new BusinessException(4103, "该用户存在考试记录，已禁用而非删除");
+        }
         userRepository.delete(user);
     }
 
