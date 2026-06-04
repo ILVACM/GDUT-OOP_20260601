@@ -487,13 +487,15 @@ public enum ExamStatus {
 
 | 业务动作 | 描述 | SQL/JPA 草案 | API 路径草案 |
 |---|---|---|---|
-| 用户创建 | 注册新用户，密码 BCrypt 哈希 | `INSERT INTO user (name, password, type, status) VALUES (?, ?, ?, 1)` | `POST /api/users` |
-| 用户查询（按 id） | 查单个用户详情 | `SELECT * FROM user WHERE id = ?` | `GET /api/users/{id}` |
-| 用户查询（列表/分页） | 按 type / status 筛选 | `SELECT * FROM user WHERE type = ? AND status = ? LIMIT ? OFFSET ?` | `GET /api/users?type=student&status=1` |
-| 用户更新 | 修改 name / type / status | `UPDATE user SET name = ?, type = ?, status = ? WHERE id = ?` | `PUT /api/users/{id}` |
-| 用户禁用/启用 | 状态启停 | `UPDATE user SET status = ? WHERE id = ?` | `PATCH /api/users/{id}/status` |
-| 用户删除 | 硬删除（需先清理关联 score） | `DELETE FROM user WHERE id = ?` | `DELETE /api/users/{id}` |
-| 登录校验 | 按 name 查 password 哈希比对 | `SELECT id, password, type, status FROM user WHERE name = ?` | `POST /api/auth/login` |
+| 用户注册 | 学生自助注册 | `INSERT INTO user (name, password, type, status) VALUES (?, ?, ?, 1)` | `POST /api/v1/auth/register` |
+| 用户登录 | 按 name 查 password 哈希比对 | `SELECT id, password, type, status FROM user WHERE name = ?` | `POST /api/v1/auth/login` |
+| 用户查询（按 id） | 查单个用户详情 | `SELECT * FROM user WHERE id = ?` | `GET /api/v1/auth/me` |
+| 用户查询（列表/分页） | 按 type / status 筛选 | `SELECT * FROM user WHERE type = ? AND status = ? LIMIT ? OFFSET ?` | `GET /api/v1/users?type=student&status=1` |
+| 用户创建 | 管理员创建任意角色用户 | `INSERT INTO user (name, password, type, status) VALUES (?, ?, ?, 1)` | `POST /api/v1/users` |
+| 用户更新 | 修改 name / type / password | `UPDATE user SET name = ?, type = ?, password = ? WHERE id = ?` | `PUT /api/v1/users/{id}` |
+| 用户禁用/启用 | 状态启停 | `UPDATE user SET status = ? WHERE id = ?` | `PATCH /api/v1/users/{id}/status` |
+| 用户删除 | 硬删除（有考试记录则禁用） | `DELETE FROM user WHERE id = ?` | `DELETE /api/v1/users/{id}` |
+| 批量删除 | 批量删除/禁用用户 | 循环调用单条删除逻辑 | `DELETE /api/v1/users/batch` |
 
 **DTO 草案**（Java 21 Record）：
 
@@ -516,12 +518,14 @@ public record UserVO(Integer id, String name, UserType type, Integer status) {}
 
 | 业务动作 | 描述 | API 路径草案 |
 |---|---|---|
-| 题目创建 | 录入单题，含 answer JSON 自适应 | `POST /api/questions` |
-| 题目批量导入 | JSON 数组批量上传 | `POST /api/questions/batch` |
-| 题目查询（按 id） | 查单题详情（含 answer） | `GET /api/questions/{id}` |
-| 题目查询（分页/筛选） | 按 type / 关键字（context LIKE）/ use 排序 | `GET /api/questions?type=SingleChoice&keyword=...&page=0&size=20` |
-| 题目更新 | 修改题干/答案 | `PUT /api/questions/{id}` |
-| 题目删除 | 硬删除（**警告**：已被组卷的题目删除会破坏 `exam.question_sum` 快照引用） | `DELETE /api/questions/{id}` |
+| 题目创建 | 录入单题，含 answer JSON 自适应 | `POST /api/v1/questions` |
+| 题目批量导入 | JSON 数组批量上传 | `POST /api/v1/questions/batch` |
+| 题目查询（按 id） | 查单题详情（含 answer） | `GET /api/v1/questions/{id}` |
+| 题目查询（分页/筛选） | 按 type / 关键字（context LIKE）/ use 排序 | `GET /api/v1/questions?type=SingleChoice&keyword=...&page=0&size=20` |
+| 题目更新 | 修改题干/答案 | `PUT /api/v1/questions/{id}` |
+| 题目删除 | 硬删除（**警告**：已被组卷的题目删除会破坏 `exam.question_sum` 快照引用） | `DELETE /api/v1/questions/{id}` |
+| 批量删除 | 批量删除题目 | `DELETE /api/v1/questions/batch` |
+| 随机获取题目 | 自动组卷用，支持 type 过滤和排除 | `GET /api/v1/questions/random?type=...&excludedIds=...` |
 | 题内统计自维护 | 组卷时 `use += 1`；判分正确时 `correct += 1` | 内部接口（无 HTTP） |
 
 **`img=1` 的图片路径匹配规则**：
@@ -558,7 +562,7 @@ public record QuestionCreateReq(
    - 构造 `question_sum` JSON（见 §4.3.1）。
    - 落 `exam` 表，**`status` 强制为 `'draft'`**。
 
-**API 路径草案**：`POST /api/exams/manual`
+**API 路径草案**：`POST /api/v1/exams/manual`
 
 #### 7.3.2 自动组卷
 
@@ -573,7 +577,7 @@ public record QuestionCreateReq(
    - 构造 `question_sum` JSON。
    - 落 `exam` 表，`status = 'draft'`。
 
-**API 路径草案**：`POST /api/exams/auto`
+**API 路径草案**：`POST /api/v1/exams/auto`
 
 #### 7.3.3 落库规范（手动 / 自动统一）
 
@@ -589,12 +593,12 @@ public record QuestionCreateReq(
 | 业务动作 | 描述 | API 路径草案 |
 |---|---|---|
 | 创建考试 | 同 7.3 手动/自动组卷 | （见 7.3） |
-| 发布考试 | `draft` → `publish` | `POST /api/exams/{id}/publish` |
-| 撤回考试 | `publish` → `draft` | `POST /api/exams/{id}/withdraw` |
-| 删除考试 | 仅 `draft` 状态可删 | `DELETE /api/exams/{id}` |
-| 考试列表（教师/管理员） | 按 status / 时间筛选全部 | `GET /api/exams?status=...&from=...&to=...` |
-| 考试列表（学生） | 仅返回 `publish` / `running` 状态 | `GET /api/exams/available` |
-| 考试详情 | 读取 `exam` + `question_sum`（不读 question 原表） | `GET /api/exams/{id}` |
+| 发布考试 | `draft` → `publish` | `POST /api/v1/exams/{id}/publish` |
+| 撤回考试 | `publish` → `draft` | `POST /api/v1/exams/{id}/withdraw` |
+| 删除考试 | 仅 `draft` 状态可删 | `DELETE /api/v1/exams/{id}` |
+| 考试列表（教师/管理员） | 按 status / 时间筛选全部 | `GET /api/v1/exams?status=...&from=...&to=...` |
+| 考试列表（学生） | 仅返回 `publish` / `running` 状态 | `GET /api/v1/exams/available` |
+| 考试详情 | 读取 `exam` + `question_sum`（不读 question 原表） | `GET /api/v1/exams/{id}` |
 | 状态同步 | 定时任务按时间窗批量更新 `status` 字段 | （内部任务） |
 
 **状态判定规则**（查询时实时计算，落库由定时任务兜底）：
@@ -914,18 +918,20 @@ public class Score {
 | Repository | M03 ExamRepository | ✅ 已实现 | `findByStatus` / `findByTimeWindow` / `findByStatusNot` |
 | Repository | M04 ScoreRepository | ✅ 已实现 | `findByUserAndExam` / `findByUser` / `findByExam` / `upsertScore`（原生 UPSERT） |
 | DDL | 4 张表 | ✅ 已实现 | `scripts/table_*.sql` + `backend/src/test/resources/schema/*.sql` |
-| 测试 | 4 个 Repository | ✅ 已实现 | 共 22 个测试方法，覆盖 CRUD / 枚举往返 / JSON 往返 / 约束校验 |
+| 测试 | 4 个 Repository | ✅ 已实现 | 共 73 个测试方法（含 Service 层），全部通过 |
 
 ### 13.2 后端业务层实现状态
 
 | 层级 | 实现状态 | 说明 |
 |---|---|---|
-| Controller | ❌ 未实现 | 所有 API 端点尚未开发 |
-| Service | ❌ 未实现 | 业务逻辑层尚未开发 |
-| DTO | ❌ 未实现 | 请求/响应 DTO（Record）尚未开发 |
-| `Result<T>` 统一返回 | ❌ 未实现 | `common/api/Result.java` 尚未创建 |
-| 全局异常处理器 | ❌ 未实现 | `common/exception/` 尚未创建 |
-| JWT 认证 | ❌ 未实现 | Token 签发/校验/拦截器尚未开发 |
+| Controller | ✅ 已实现 | 4 个 Controller（User/Question/Exam/Score）+ 1 DraftController，共 40 个端点 |
+| Service | ✅ 已实现 | 4 个 Service + 1 DraftCacheService，完整业务逻辑 + 事务控制 |
+| DTO | ✅ 已实现 | 30+ Record/VO 类，覆盖所有请求/响应场景 |
+| `Result<T>` 统一返回 | ✅ 已实现 | `common/api/Result.java` |
+| `PageResult<T>` 分页包装 | ✅ 已实现 | `common/api/PageResult.java` |
+| 全局异常处理器 | ✅ 已实现 | `common/exception/GlobalExceptionHandler.java` |
+| JWT 认证 | ✅ 已实现 | JwtUtil + JwtAuthenticationInterceptor + @RequireRole 注解 |
+| WebMvcConfig | ✅ 已实现 | 拦截器注册配置 |
 
 ### 13.3 前端实现状态
 

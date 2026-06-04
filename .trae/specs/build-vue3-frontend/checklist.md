@@ -1,0 +1,41 @@
+- [x] 项目依赖安装完整（element-plus, axios, pinia-plugin-persistedstate, typescript, vue-tsc 等）
+- [x] TypeScript 配置文件存在且正确（tsconfig.json 系列，已添加 ignoreDeprecations: "6.0"）
+- [x] vite.config.ts 配置了 Vite Proxy（`/api` → `http://localhost:8080`）和路径别名 `@`
+- [x] src/ 目录结构完整（api, views, components, stores, router, utils, types, layouts, directives）
+- [x] src/types/ 包含所有 API 数据结构的 TypeScript Interface 定义（含 LoginReq, LoginResp, RegisterReq, UserVO, ChangePasswordReq, UserStatusReq 等）
+- [x] Axios 封装满足 F2（baseURL 为 `/api`，无硬编码）、F3（统一解包 Result<T>）、F4（自动注入 Token）
+- [x] 响应拦截器正确处理 code=200（返回 data）和非 200（ElMessage.error + reject）
+- [x] 响应拦截器处理 4101/4102 状态码（跳转登录页）
+- [x] 3 套 Layout 组件存在（BasicLayout, BlankLayout, ExamLayout）
+- [x] Vue Router 路由表包含所有页面路由，正确使用嵌套路由关联 3 套 Layout
+- [x] main.ts 正确注册 Element Plus、Pinia（含持久化插件）、Vue Router
+- [x] UserStore 实现 login/logout/fetchCurrentUser，token 和 user 持久化到 LocalStorage
+- [x] PaperStore 实现 addItem/removeItem/reorderItems/clearAll，持久化到 LocalStorage
+- [x] ExamStore 实现 initExam/updateAnswer/submitExam/clearExam，持久化到 LocalStorage
+- [x] 路由守卫 beforeEach 实现未登录重定向 /login，已登录访问 /login 重定向首页
+- [x] 路由守卫实现角色权限校验（meta.requiredRoles）
+- [x] v-permission 自定义指令正确隐藏无权限按钮
+- [x] 5 个 API 模块文件存在（auth.ts, user.ts, question.ts, exam.ts, score.ts）
+- [x] API 模块函数签名与后端 39 个端点一一对应（EssayGradeReq 已修正为含 scoreId/questionId/score/comment）
+- [x] BasicLayout 包含动态侧边栏菜单（根据角色渲染不同菜单项）
+- [x] 登录页调用 POST /api/v1/auth/login，成功存储 token 并跳转首页
+- [x] 注册页调用 POST /api/v1/auth/register，仅允许 student 角色
+- [x] 题库管理页实现分页列表 + 类型/关键字筛选 + CRUD 操作
+- [x] 题目创建/编辑对话框支持 5 种题型的答案 JSON 动态表单
+- [x] 考试管理页实现分页列表 + 状态操作（发布/撤回/删除）
+- [x] 手动组卷功能使用 PaperStore 缓存，支持选题/调序/设分值
+- [x] 自动组卷功能支持填写抽题规则（题目数/总分/题型过滤/频次降权）
+- [x] 学生考试列表页调用 GET /api/v1/exams/available
+- [x] 答题页使用沉浸式 Layout，显示全屏倒计时
+- [x] 答题页实时保存进度到 ExamStore + 草稿 API（每 30 秒自动保存）
+- [x] 答题页支持断点续答（页面加载从 ExamStore/草稿 API 恢复）
+- [x] 交卷逻辑调用 POST /api/v1/exams/{examId}/submit，成功后清空 ExamStore
+- [x] 倒计时结束自动触发交卷
+- [x] 数据统计页显示考试统计和题目统计（教师/管理员）
+- [x] 学生成绩页显示个人成绩列表和错题集
+- [x] 个人中心页显示用户信息 + 修改密码
+- [x] 管理员用户管理功能完整（UserManageView.vue 实现 CRUD + 状态切换 + 批量删除）
+- [x] 所有表单提交按钮实现防重复提交（通过 :loading 状态禁用按钮，等效于防抖）
+- [x] 404 页面存在
+- [x] 脚手架默认组件（HelloWorld, TheWelcome 等）已清理
+- [x] 项目 `npm run build` 编译通过无错误

@@ -1,0 +1,8 @@
+<template>
+  <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #f0f2f5">
+    <router-view />
+  </div>
+</template>
+
+<script setup lang="ts">
+</script>

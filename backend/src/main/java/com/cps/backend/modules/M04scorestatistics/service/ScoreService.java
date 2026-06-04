@@ -1,5 +1,6 @@
 package com.cps.backend.modules.M04scorestatistics.service;
 
+import com.cps.backend.common.api.PageResult;
 import com.cps.backend.common.exception.BusinessException;
 import com.cps.backend.modules.M01userauth.repository.UserRepository;
 import com.cps.backend.modules.M02questionbank.dto.SingleChoiceAnswer;
@@ -41,6 +42,7 @@ public class ScoreService {
     private final ExamService examService;
     private final ObjectMapper objectMapper;
     private final com.cps.backend.modules.M01userauth.repository.UserRepository userRepository;
+    private final DraftCacheService draftCacheService;
 
     // 参考 M04-Score-Statistics.md §3.2 — 答题提交与判分
     @Transactional(rollbackFor = Exception.class)
@@ -113,6 +115,9 @@ public class ScoreService {
         for (Integer qId : correctQuestionIds) {
             questionService.incrementCorrect(qId);
         }
+
+        // 10. 清理草稿缓存
+        draftCacheService.clearDraft(req.examId(), userId);
 
         return toScoreVO(score, exam, qMap, sum);
     }
@@ -317,6 +322,134 @@ public class ScoreService {
             .toList();
     }
 
+    // ===== 分页方法 =====
+
+    // 参考 M04-Score-Statistics.md §6.2 — 个人成绩列表（分页）
+    public PageResult<ScoreListVO> getMyScores(Integer userId, int page, int size) {
+        List<Score> scores = scoreRepository.findByUser(userId);
+        // 按提交时间倒序（id 降序近似）
+        List<Score> sorted = scores.stream()
+            .sorted(Comparator.comparing(Score::getId).reversed())
+            .toList();
+        int total = sorted.size();
+        int start = page * size;
+        int end = Math.min(start + size, total);
+        List<ScoreListVO> content = (start < total)
+            ? sorted.subList(start, end).stream()
+                .map(score -> toScoreListVO(score, examRepository.findById(score.getExam()).orElse(null)))
+                .toList()
+            : List.of();
+        return toPageResult(content, total, page, size);
+    }
+
+    // 参考 M04-Score-Statistics.md §6.2 — 某考试所有考生成绩（分页）
+    public PageResult<ScoreListVO> getExamScores(Integer examId, int page, int size) {
+        Exam exam = examRepository.findById(examId).orElse(null);
+        QuestionSum sum = exam != null ? parseQuestionSum(exam.getQuestionSum()) : null;
+        List<Score> scores = scoreRepository.findByExam(examId);
+        List<Score> sorted = scores.stream()
+            .sorted(Comparator.comparing(Score::getId).reversed())
+            .toList();
+        int total = sorted.size();
+        int start = page * size;
+        int end = Math.min(start + size, total);
+        List<ScoreListVO> content = (start < total)
+            ? sorted.subList(start, end).stream()
+                .map(score -> toScoreListVO(score, exam))
+                .toList()
+            : List.of();
+        return toPageResult(content, total, page, size);
+    }
+
+    // 参考 M04-Score-Statistics.md §6.2 — 我的错题集（分页）
+    public PageResult<MistakeItemVO> getMyMistakes(Integer userId, int page, int size) {
+        List<Score> scores = scoreRepository.findByUser(userId);
+        // 使用 LinkedHashMap 保持插入顺序同时去重
+        Map<Integer, MistakeItemVO> mistakeMap = new LinkedHashMap<>();
+
+        for (Score score : scores) {
+            Exam exam = examRepository.findById(score.getExam()).orElse(null);
+            if (exam == null) continue;
+            QuestionSum sum = parseQuestionSum(exam.getQuestionSum());
+            ScoreDetail detail = parseScoreDetail(score.getDetail());
+
+            Map<Integer, Question> qMap = questionRepository.findAllById(
+                sum.items().stream().map(QuestionSumItem::questionId).toList()
+            ).stream().collect(Collectors.toMap(Question::getId, q -> q));
+
+            for (DetailItem item : detail.items()) {
+                if (Boolean.FALSE.equals(item.isCorrect())) {
+                    // 去重：同一题只保留最近一次错误记录
+                    mistakeMap.put(item.questionId(), new MistakeItemVO(
+                        item.questionId(),
+                        qMap.get(item.questionId()) != null ? qMap.get(item.questionId()).getType() : null,
+                        qMap.get(item.questionId()) != null ? qMap.get(item.questionId()).getContext() : null,
+                        extractOptions(qMap.get(item.questionId())),
+                        item.userAnswer(),
+                        item.correctAnswer(),
+                        score.getExam(),
+                        exam.getExam()
+                    ));
+                }
+            }
+        }
+
+        List<MistakeItemVO> allMistakes = new ArrayList<>(mistakeMap.values());
+        int total = allMistakes.size();
+        int start = page * size;
+        int end = Math.min(start + size, total);
+        List<MistakeItemVO> content = (start < total) ? allMistakes.subList(start, end) : List.of();
+        return toPageResult(content, total, page, size);
+    }
+
+    // 参考 M04-Score-Statistics.md §6.3 — 题目统计（分页）
+    public PageResult<QuestionStatisticsVO> getQuestionStatisticsPaginated(int page, int size, String sortBy) {
+        List<Question> questions = questionRepository.findAll();
+        List<QuestionStatisticsVO> allStats = questions.stream()
+            .map(q -> new QuestionStatisticsVO(
+                q.getId(),
+                q.getType(),
+                q.getUse(),
+                q.getCorrect(),
+                q.getUse() > 0 ? (double) q.getCorrect() / q.getUse() : null
+            ))
+            .toList();
+
+        // 排序
+        Comparator<QuestionStatisticsVO> comparator = switch (sortBy != null ? sortBy : "use") {
+            case "accuracy" -> Comparator.comparing(QuestionStatisticsVO::accuracyRate,
+                Comparator.nullsLast(Comparator.naturalOrder()));
+            case "correct" -> Comparator.comparing(QuestionStatisticsVO::correct,
+                Comparator.nullsLast(Comparator.naturalOrder()));
+            default -> Comparator.comparing(QuestionStatisticsVO::use,
+                Comparator.nullsLast(Comparator.naturalOrder()));
+        };
+        // 默认按 use 降序
+        if ("use".equals(sortBy) || sortBy == null) {
+            comparator = Comparator.comparing(QuestionStatisticsVO::use, Comparator.nullsLast(Comparator.naturalOrder())).reversed();
+        }
+        List<QuestionStatisticsVO> sorted = allStats.stream().sorted(comparator).toList();
+
+        int total = sorted.size();
+        int start = page * size;
+        int end = Math.min(start + size, total);
+        List<QuestionStatisticsVO> content = (start < total) ? sorted.subList(start, end) : List.of();
+        return toPageResult(content, total, page, size);
+    }
+
+    // 单题统计详情
+    public QuestionStatisticsVO getQuestionStatisticById(Integer questionId) {
+        Question question = questionRepository.findById(questionId)
+            .orElseThrow(() -> new BusinessException(4201, "题目不存在"));
+        return new QuestionStatisticsVO(
+            question.getId(),
+            question.getType(),
+            question.getUse(),
+            question.getCorrect(),
+            question.getUse() > 0 ? (double) question.getCorrect() / question.getUse() : null
+        );
+    }
+
     // ===== 私有辅助方法 =====
 
     // 判分结果内部 record
@@ -354,7 +487,10 @@ public class ScoreService {
                     FillAnswer ans = objectMapper.readValue(answerJson, FillAnswer.class);
                     @SuppressWarnings("unchecked")
                     List<String> userBlanks = (List<String>) userAnswer;
-                    boolean correct = ans.blanks().equals(userBlanks);
+                    // 逐空匹配：忽略大小写、去除首尾空格
+                    boolean correct = ans.blanks().size() == userBlanks.size()
+                        && java.util.stream.IntStream.range(0, ans.blanks().size())
+                            .allMatch(i -> ans.blanks().get(i).trim().equalsIgnoreCase(userBlanks.get(i).trim()));
                     yield new GradingResult(correct ? maxScore : 0, correct);
                 }
                 case Essay -> {
@@ -422,6 +558,32 @@ public class ScoreService {
         } catch (tools.jackson.core.JacksonException e) {
             throw new BusinessException(5000, "JSON序列化失败");
         }
+    }
+
+    // Score → ScoreListVO 转换（不含明细）
+    private ScoreListVO toScoreListVO(Score score, Exam exam) {
+        QuestionSum sum = exam != null ? parseQuestionSum(exam.getQuestionSum()) : null;
+        int maxScore = sum != null ? sum.totalScore() : 0;
+        double accuracy = maxScore > 0 ? (double) score.getAll() / maxScore : 0;
+        return new ScoreListVO(
+            score.getId(),
+            score.getExam(),
+            exam != null ? exam.getExam() : null,
+            score.getAll(),
+            maxScore,
+            accuracy
+        );
+    }
+
+    // 通用分页转换
+    private <T> PageResult<T> toPageResult(List<T> content, int total, int page, int size) {
+        PageResult<T> r = new PageResult<>();
+        r.setContent(content);
+        r.setTotalElements(total);
+        r.setTotalPages(size > 0 ? (int) Math.ceil((double) total / size) : 0);
+        r.setPage(page);
+        r.setSize(size);
+        return r;
     }
 
     // Entity → VO 转换

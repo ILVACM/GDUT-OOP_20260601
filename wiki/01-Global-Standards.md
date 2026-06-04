@@ -285,23 +285,43 @@ public interface ExamRepository extends JpaRepository<Exam, Integer> {
 ```
 com.cps.backend
 ├── common/
-│   ├── api/         # Result<T> 等统一返回          ← ❌ 待实现
-│   └── exception/   # BusinessException、GlobalExceptionHandler  ← ❌ 待实现
+│   ├── api/         # Result<T>, PageResult<T>          ← ✅ 已实现
+│   ├── exception/   # BusinessException, GlobalExceptionHandler  ← ✅ 已实现
+│   ├── config/      # WebMvcConfig（拦截器注册）           ← ✅ 已实现
+│   └── security/    # JwtUtil, JwtAuthenticationInterceptor, @RequireRole  ← ✅ 已实现
 ├── modules/
-│   ├── M01-userauth/
-│   │   ├── controller/  # @RestController，对外暴露 API  ← ❌ 待实现
-│   │   ├── service/     # 业务逻辑，@Service              ← ❌ 待实现
-│   │   ├── repository/  # Spring Data JPA 接口            ← ✅ 已实现
-│   │   ├── entity/      # JPA 实体，与数据字典表一一对应   ← ✅ 已实现
-│   │   ├── dto/         # 请求/响应 DTO（Java 21 Record） ← ❌ 待实现
-│   │   └── enums/       # 枚举定义                        ← ✅ 已实现
-│   ├── M02-questionbank/  （同上分层，entity/enum/repository 已实现）
-│   ├── M03-examassembly/  （同上分层，entity/enum/repository 已实现）
-│   └── M04-scorestatistics/（同上分层，entity/repository 已实现）
+│   ├── M01userauth/        # 包名（注意无横杠）
+│   │   ├── controller/     # UserController              ← ✅ 已实现
+│   │   ├── service/        # UserService                 ← ✅ 已实现
+│   │   ├── repository/     # UserRepository              ← ✅ 已实现
+│   │   ├── entity/         # User                        ← ✅ 已实现
+│   │   ├── dto/            # LoginReq/Resp, RegisterReq, UserVO, ChangePasswordReq, UserStatusReq, BatchDeleteReq  ← ✅ 已实现
+│   │   └── enums/          # UserType                    ← ✅ 已实现
+│   ├── M02questionbank/
+│   │   ├── controller/     # QuestionController          ← ✅ 已实现
+│   │   ├── service/        # QuestionService             ← ✅ 已实现
+│   │   ├── repository/     # QuestionRepository          ← ✅ 已实现
+│   │   ├── entity/         # Question                    ← ✅ 已实现
+│   │   ├── dto/            # QuestionCreateReq/UpdateReq/QueryReq/VO, BatchImportResult, QuestionPreviewVO, Answer 多态（SingleChoice/MultipleChoice/Judge/Fill/EssayAnswer）  ← ✅ 已实现
+│   │   └── enums/          # QuestionType                ← ✅ 已实现
+│   ├── M03examassembly/
+│   │   ├── controller/     # ExamController              ← ✅ 已实现
+│   │   ├── service/        # ExamService                 ← ✅ 已实现
+│   │   ├── repository/     # ExamRepository              ← ✅ 已实现
+│   │   ├── entity/         # Exam                        ← ✅ 已实现
+│   │   ├── dto/            # ExamCreateManualReq/AutoReq, ExamVO/ForStudentVO, ExamQuestionItemReq/VO/ForStudentVO, QuestionSum/Item, AutoRule  ← ✅ 已实现
+│   │   └── enums/          # ExamStatus                  ← ✅ 已实现
+│   └── M04scorestatistics/
+│       ├── controller/     # ScoreController, DraftController  ← ✅ 已实现
+│       ├── service/        # ScoreService, DraftCacheService   ← ✅ 已实现
+│       ├── repository/     # ScoreRepository             ← ✅ 已实现
+│       ├── entity/         # Score                       ← ✅ 已实现
+│       ├── dto/            # ExamSubmitReq, AnswerItem, ScoreVO/Detail/ListVO, DetailItem/VO, MistakeItemVO, EssayGradeReq, ExamStatisticsVO, QuestionStatisticsVO, UserExamHistoryVO, Summary  ← ✅ 已实现
+│       └── enums/          # （无独立枚举，复用其他模块）     ← ✅
 └── BackendApplication.java  ← ✅ 已实现
 ```
 
-> **当前实现状态**（2026-06-04）：数据层（Entity + Enum + Repository + DDL + 测试）已完成；业务层（Controller / Service / DTO / 全局异常处理 / `Result<T>`）尚未开发。
+> **当前实现状态**（2026-06-05）：后端全链路已完成 ✅——所有层（Controller/Service/DTO/Repository/Entity/Enum）均已实现，共 73 个单元测试全部通过。
 
 ### 6.2 分层职责
 

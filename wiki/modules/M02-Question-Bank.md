@@ -132,14 +132,17 @@ public record QuestionVO(
 
 | 方法 | 路径 | 鉴权 | 描述 |
 |---|---|---|---|
-| POST | `/api/questions` | 老师 / 管理员 | 创建题目 |
-| POST | `/api/questions/batch` | 老师 / 管理员 | 批量导入 |
-| GET | `/api/questions/{id}` | 老师 / 管理员 | 题目详情 |
-| PUT | `/api/questions/{id}` | 老师 / 管理员 | 更新题目 |
-| DELETE | `/api/questions/{id}` | 老师 / 管理员 | 删除题目（**警告**：破坏快照引用） |
-| GET | `/api/questions` | 老师 / 管理员 | 分页查询 |
+| GET | `/api/v1/questions/random` | 老师 / 管理员 | 随机获取单道题目（自动组卷用） |
+| POST | `/api/v1/questions` | 老师 / 管理员 | 创建题目 |
+| POST | `/api/v1/questions/batch` | 老师 / 管理员 | 批量导入 |
+| GET | `/api/v1/questions/{id}` | 老师 / 管理员 | 题目详情 |
+| PUT | `/api/v1/questions/{id}` | 老师 / 管理员 | 更新题目 |
+| DELETE | `/api/v1/questions/{id}` | 老师 / 管理员 | 删除题目（**警告**：破坏快照引用） |
+| GET | `/api/v1/questions` | 老师 / 管理员 | 分页查询 |
+| DELETE | `/api/v1/questions/batch` | 老师 / 管理员 | 批量删除题目 |
 
-> **v2.0.0 简化**：路径前缀 `/api/v1/` → `/api/`；移除 `PATCH /api/questions/{id}/status`（无 status 字段）。
+> **API 前缀**：`/api/v1/`（与代码实际一致）。
+> **路由顺序说明**：`/questions/random` 必须在 `/questions/{id}` 之前定义，否则 Spring 会将 "random" 误解析为 ID。
 
 ---
 
@@ -219,11 +222,11 @@ public Answer parseAnswer(String json, QuestionType type) {
 | 层级 | 实现状态 | 说明 |
 |---|---|---|
 | Entity | ✅ 已实现 | 字段与 02-Data-Dictionary.md 完全一致 |
-| Enum | ✅ 已实现 | |
-| Repository | ✅ 已实现 | 核心查询方法已实现 |
-| Controller | ❌ 未实现 | API 端点尚未开发 |
-| Service | ❌ 未实现 | 业务逻辑尚未开发 |
-| DTO | ❌ 未实现 | 请求/响应 Record 尚未开发 |
+| Enum | ✅ 已实现 | QuestionType |
+| Repository | ✅ 已实现 | findByType / searchByKeyword（分页）/ incrementUse / incrementCorrect |
+| Controller | ✅ 已实现 | 8 个端点（random/create/batch/getById/update/delete/list/batchDelete） |
+| Service | ✅ 已实现 | create/batchCreate/findById/search/update/delete/getRandomQuestion |
+| DTO | ✅ 已实现 | QuestionCreateReq/UpdateReq/QueryReq/VO, BatchImportResult, QuestionPreviewVO, Answer 多态（5 种） |
 
 ---
 

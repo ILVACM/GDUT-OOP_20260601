@@ -1,5 +1,6 @@
 package com.cps.backend.modules.M03examassembly.service;
 
+import com.cps.backend.common.api.PageResult;
 import com.cps.backend.common.exception.BusinessException;
 import com.cps.backend.modules.M02questionbank.entity.Question;
 import com.cps.backend.modules.M02questionbank.enums.QuestionType;
@@ -11,6 +12,9 @@ import com.cps.backend.modules.M03examassembly.enums.ExamStatus;
 import com.cps.backend.modules.M03examassembly.repository.ExamRepository;
 import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +34,7 @@ public class ExamService {
 
     // 参考 M03-Exam-Assembly.md §3.1 — 手动组卷
     @Transactional(rollbackFor = Exception.class)
-    public ExamVO createManual(ExamCreateManualReq req) {
+    public ExamVO createManualExam(ExamCreateManualReq req) {
         // 校验时间
         validateTimeWindow(req.starttime(), req.endtime());
 
@@ -73,7 +77,7 @@ public class ExamService {
 
     // 参考 M03-Exam-Assembly.md §3.2 — 自动组卷
     @Transactional(rollbackFor = Exception.class)
-    public ExamVO createAuto(ExamCreateAutoReq req) {
+    public ExamVO createAutoExam(ExamCreateAutoReq req) {
         validateTimeWindow(req.starttime(), req.endtime());
         AutoRule rule = req.autoRule();
 
@@ -129,14 +133,14 @@ public class ExamService {
         return toVO(saved);
     }
 
-    public ExamVO findById(Integer id) {
+    public ExamVO getExamById(Integer id) {
         Exam exam = examRepository.findById(id)
             .orElseThrow(() -> new BusinessException(4301, "考试不存在"));
         return toVOWithResolvedStatus(exam);
     }
 
     // 参考 M03-Exam-Assembly.md §8.2 — 学生视角预览（剔除答案）
-    public ExamForStudentVO findForStudent(Integer id) {
+    public ExamForStudentVO getExamForStudent(Integer id) {
         Exam exam = examRepository.findById(id)
             .orElseThrow(() -> new BusinessException(4301, "考试不存在"));
 
@@ -180,33 +184,30 @@ public class ExamService {
 
     // 参考 M03-Exam-Assembly.md §7 业务规则1 — 仅 draft 可发布
     @Transactional(rollbackFor = Exception.class)
-    public ExamVO publish(Integer id) {
+    public void publishExam(Integer id) {
         Exam exam = examRepository.findById(id)
             .orElseThrow(() -> new BusinessException(4301, "考试不存在"));
         if (exam.getStatus() != ExamStatus.draft) {
             throw new BusinessException(4303, "仅草稿状态可发布");
         }
         exam.setStatus(ExamStatus.publish);
-        Exam saved = examRepository.save(exam);
-        return toVO(saved);
+        examRepository.save(exam);
     }
 
-    // 参考 M03-Exam-Assembly.md §7 业务规则2 — 仅 publish 可撤回
     @Transactional(rollbackFor = Exception.class)
-    public ExamVO withdraw(Integer id) {
+    public void withdrawExam(Integer id) {
         Exam exam = examRepository.findById(id)
             .orElseThrow(() -> new BusinessException(4301, "考试不存在"));
         if (exam.getStatus() != ExamStatus.publish) {
             throw new BusinessException(4303, "仅已发布状态可撤回");
         }
         exam.setStatus(ExamStatus.draft);
-        Exam saved = examRepository.save(exam);
-        return toVO(saved);
+        examRepository.save(exam);
     }
 
     // 参考 M03-Exam-Assembly.md §7 业务规则1 — 草稿可改、发布后不可改
     @Transactional(rollbackFor = Exception.class)
-    public ExamVO edit(Integer id, ExamCreateManualReq req) {
+    public ExamVO updateExam(Integer id, ExamCreateManualReq req) {
         Exam exam = examRepository.findById(id)
             .orElseThrow(() -> new BusinessException(4301, "考试不存在"));
 
@@ -270,29 +271,37 @@ public class ExamService {
 
     // 参考 M03-Exam-Assembly.md §7 业务规则5 — 仅 draft 可删除
     @Transactional(rollbackFor = Exception.class)
-    public void delete(Integer id) {
+    public void deleteExam(Integer id) {
         Exam exam = examRepository.findById(id)
             .orElseThrow(() -> new BusinessException(4301, "考试不存在"));
         if (exam.getStatus() != ExamStatus.draft) {
             throw new BusinessException(4303, "仅草稿状态可删除");
         }
+        // 删除前回退所有题目的 use 统计
+        QuestionSum sum = parseQuestionSum(exam.getQuestionSum());
+        for (QuestionSumItem item : sum.items()) {
+            questionService.decrementUse(item.questionId());
+        }
         examRepository.delete(exam);
     }
 
-    public List<ExamVO> findByStatus(ExamStatus status) {
-        return examRepository.findByStatus(status).stream()
+    // 参考 M03-Exam-Assembly.md §7.4 — 分页查询考试列表（教师/管理员）
+    public PageResult<ExamVO> listExams(Integer page, Integer size, ExamStatus status) {
+        List<Exam> exams;
+        if (status != null) {
+            // 按状态过滤
+            exams = examRepository.findByStatus(status);
+        } else {
+            exams = examRepository.findAll(Sort.by("id").descending());
+        }
+        List<ExamVO> voList = exams.stream()
             .map(this::toVOWithResolvedStatus)
             .toList();
-    }
-
-    public List<ExamVO> findAll() {
-        return examRepository.findAll().stream()
-            .map(this::toVOWithResolvedStatus)
-            .toList();
+        return toPageResult(voList, page, size);
     }
 
     // 学生可参加的考试列表
-    public List<ExamForStudentVO> findAvailableForStudent() {
+    public List<ExamForStudentVO> listAvailableExams() {
         LocalDateTime now = LocalDateTime.now();
         List<Exam> exams = examRepository.findByStatusNot(ExamStatus.draft);
         return exams.stream()
@@ -302,13 +311,24 @@ public class ExamService {
             })
             .map(e -> {
                 try {
-                    return findForStudent(e.getId());
+                    return getExamForStudent(e.getId());
                 } catch (BusinessException ex) {
                     return null;
                 }
             })
             .filter(Objects::nonNull)
             .toList();
+    }
+
+    // 手动构造分页结果（因需要内存中状态解析）
+    private PageResult<ExamVO> toPageResult(List<ExamVO> content, int page, int size) {
+        PageResult<ExamVO> r = new PageResult<>();
+        r.setContent(content);
+        r.setTotalElements(content.size());
+        r.setTotalPages((int) Math.ceil((double) content.size() / size));
+        r.setPage(page);
+        r.setSize(size);
+        return r;
     }
 
     // 参考 M03-Exam-Assembly.md §8.3 — 状态实时判定

@@ -68,12 +68,13 @@ GDUT-OOP_20260601/
 │   │       │   └── M04scorestatistics/ # entity/repository ✅ 已实现
 │   │       └── BackendApplication.java
 │   ├── src/main/resources/  # application.yaml（生产配置）
-│   ├── src/test/            # 单元测试与集成测试（4 个 Repository 测试 ✅ 已实现）
+│   ├── src/test/            # 单元测试与集成测试（73 个测试 ✅ 全部通过）
 │   │   └── resources/       # application-test.yaml + schema/*.sql
 │   └── pom.xml              # Maven 配置（Spring Boot 4.0.6）
 ├── frontend/                # 【待创建】Vue 3 前端工程
 ├── Data/                    # SQLite 数据库文件目录
-│   └── English.sqlite       # 运行时数据库（不提交 Git）
+│   ├── English.sqlite       # 运行时数据库（不提交 Git）
+│   └── img/                 # 题目图片存储目录
 ├── scripts/                 # DDL 脚本（table_user/question/exam/score.sql）
 ├── wiki/                    # 项目权威规范文档
 │   ├── 00-INDEX.md          # 本文件
@@ -84,9 +85,9 @@ GDUT-OOP_20260601/
 └── temp/                    # 临时草稿区（已停止维护）
 ```
 
-> **关于 frontend/ 目录**：当前仓库尚未初始化前端工程，请在完成业务层（Controller / Service / DTO）开发后，依据 §2 技术栈创建。
+> **关于 frontend/ 目录**：当前仓库尚未初始化前端工程。后端全栈（数据层 + 业务层 + 基础设施）已完成，可依据 §2 技术栈创建前端。
 >
-> **当前实现状态**（2026-06-04）：后端数据层（Entity + Enum + Repository + DDL + 测试）已完成并可正常运行；业务层（Controller / Service / DTO / 全局异常处理 / `Result<T>` / JWT 认证）尚未开发；前端尚未创建。
+> **当前实现状态**（2026-06-04）：后端全链路已完成 ✅——数据层（Entity + Enum + Repository + DDL + 测试）、业务层（Controller + Service + DTO + 全局异常处理 + `Result<T>` + `PageResult<T>` + JWT 认证 + `@RequireRole` 拦截 + Draft 草稿缓存）、所有单元测试 73 个全部通过；前端尚未创建。
 
 ***
 
@@ -154,5 +155,6 @@ AI 在生成最终答案前**必须**外化思考过程，使用如下格式：
 | 2026-06-03 | v1.0.0 | 由 temp.txt 草案整合为 wiki 正式规范；重命名模块 M02-M04；建立权威文档体系 |
 | 2026-06-04 | v1.0.1 | 配合 [02-Data-Dictionary.md v2.0.0](file:///d:/GDUT-OOP_20260601/wiki/02-Data-Dictionary.md) 同步更新：业务功能矩阵与模块索引按 4 表新规范重写（删除 `answer_statistics`、枚举小写/CamelCase、状态机 4 态）；[01-Global-Standards.md §4.1.1](file:///d:/GDUT-OOP_20260601/wiki/01-Global-Standards.md) 新增放弃 J6/§5 硬约束的例外声明 |
 | 2026-06-04 | v1.1.0 | 配合 [02-Data-Dictionary.md v3.0.0](file:///d:/GDUT-OOP_20260601/wiki/02-Data-Dictionary.md) 全面校准：① 技术栈矩阵补充 Hibernate 社区方言版本号；② 硬约束新增第 4 条 SQLite 特殊约束（Integer 布尔 / String 时间 / Integer 主键）；③ 目录结构更新为实际状态（标注已实现/待实现）；④ 新增当前实现状态说明（数据层完成、业务层待开发、前端待创建） |
+| 2026-06-05 | v2.0.0 | **后端全链路完成校准**：① 更新实现状态为后端全链路完成（Controller/Service/DTO/JWT/PageResult/Draft 缓存全部实现）；② 统一 API 前缀为 `/api/v1/`（与代码实际一致）；③ 补充 register、batch delete、random question、draft save/load 等新增接口；④ 更新测试计数为 73 个全部通过；⑤ 全局 API 接口文档与代码对齐 |
 
 *** 

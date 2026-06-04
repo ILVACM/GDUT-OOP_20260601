@@ -248,27 +248,35 @@ public record UserExamHistoryVO(
 
 | 方法 | 路径 | 鉴权 | 描述 | 请求 | 响应 |
 |---|---|---|---|---|---|
-| POST | `/api/exams/{examId}/submit` | 学生 | 提交答卷 | `ExamSubmitReq` | `ScoreVO` |
-| POST | `/api/scores/{scoreId}/grade-essay` | 老师 / 管理员 | 评卷 | `EssayGradeReq` | `ScoreVO` |
+| POST | `/api/v1/exams/{examId}/submit` | 学生 | 提交答卷 | `ExamSubmitReq` | `ScoreVO` |
+| POST | `/api/v1/scores/{scoreId}/grade-essay` | 老师 / 管理员 | 评卷 | `EssayGradeReq` | `ScoreVO` |
 
 ### 6.2 分数查询
 
-| 方法 | 路径 | 鉴权 | 描述 |
-|---|---|---|---|
-| GET | `/api/scores/me` | 任意登录用户 | 我的所有成绩 |
-| GET | `/api/scores/{id}` | 学生（自己） / 老师 / 管理员 | 分数详情 |
-| GET | `/api/exams/{examId}/scores` | 老师 / 管理员 | 某考试的所有考生分数 |
-| GET | `/api/scores/me/mistakes` | 学生 | 我的错题集 |
+| 方法 | 路径 | 鉴权 | 描述 | 请求 | 响应 |
+|---|---|---|---|---|---|
+| GET | `/api/v1/scores/me` | 任意登录用户 | 我的所有成绩（分页） | `?page=0&size=20` | `PageResult<ScoreListVO>` |
+| GET | `/api/v1/scores/me/mistakes` | 学生 | 我的错题集（分页） | `?page=0&size=20` | `PageResult<MistakeItemVO>` |
+| GET | `/api/v1/scores/{id}` | 任意登录用户 | 分数详情 | — | `ScoreVO` |
+| GET | `/api/v1/exams/{examId}/scores` | 老师 / 管理员 | 某考试的所有考生分数（分页） | `?page=0&size=20` | `PageResult<ScoreListVO>` |
 
 ### 6.3 统计报表
 
-| 方法 | 路径 | 鉴权 | 描述 |
-|---|---|---|---|
-| GET | `/api/statistics/exams/{examId}` | 老师 / 管理员 | 考试统计 |
-| GET | `/api/statistics/questions` | 老师 / 管理员 | 题目统计（按正确率排序） |
-| GET | `/api/statistics/questions/{id}` | 老师 / 管理员 | 单题详细统计 |
+| 方法 | 路径 | 鉴权 | 描述 | 请求 | 响应 |
+|---|---|---|---|---|---|
+| GET | `/api/v1/statistics/exams/{examId}` | 老师 / 管理员 | 考试统计 | — | `ExamStatisticsVO` |
+| GET | `/api/v1/statistics/questions` | 老师 / 管理员 | 题目统计（分页/排序） | `?page=0&size=20&sortBy=use` | `PageResult<QuestionStatisticsVO>` |
+| GET | `/api/v1/statistics/questions/{id}` | 老师 / 管理员 | 单题详细统计 | — | `QuestionStatisticsVO` |
 
-> **v2.0.0 简化**：路径前缀 `/api/v1/` → `/api/`。
+### 6.4 草稿缓存（新增）
+
+| 方法 | 路径 | 鉴权 | 描述 | 请求 | 响应 |
+|---|---|---|---|---|---|
+| PUT | `/api/v1/exams/{examId}/draft` | 学生 | 保存草稿答案（考试中自动保存） | `DraftSaveReq` | `Result<Void>` |
+| GET | `/api/v1/exams/{examId}/draft` | 学生 | 加载草稿答案 | — | `List<AnswerItem>` |
+
+> **API 前缀**：`/api/v1/`（与代码实际一致）。
+> **路由顺序说明**：`/scores/me` 和 `/scores/me/mistakes` 必须在 `/scores/{id}` 之前定义，否则 Spring 会将 "me" 误解析为 id。
 
 ---
 
@@ -388,11 +396,11 @@ int incrementCorrect(@Param("id") Integer id);
 | 层级 | 实现状态 | 说明 |
 |---|---|---|
 | Entity | ✅ 已实现 | 字段与 02-Data-Dictionary.md 完全一致 |
-| Enum | ✅ 已实现 | （M04 无独立枚举） |
-| Repository | ✅ 已实现 | 核心查询方法已实现 |
-| Controller | ❌ 未实现 | API 端点尚未开发 |
-| Service | ❌ 未实现 | 业务逻辑尚未开发 |
-| DTO | ❌ 未实现 | 请求/响应 Record 尚未开发 |
+| Enum | ✅ 已实现 | （无独立枚举，复用 M02/M03） |
+| Repository | ✅ 已实现 | findByUserAndExam / findByUser / findByExam / upsertScore（原生 UPSERT） |
+| Controller | ✅ 已实现 | ScoreController（9 端点）+ DraftController（2 端点）|
+| Service | ✅ 已实现 | ScoreService（submitExam/gradeEssay/getMyScores/getMyMistakes/findById/getExamScores/getExamStatistics/getQuestionStatisticsPaginated/getQuestionStatisticById）+ DraftCacheService（saveDraft/loadDraft）|
+| DTO | ✅ 已实现 | ExamSubmitReq, AnswerItem, ScoreVO/Detail/ListVO, DetailItem/VO, MistakeItemVO, EssayGradeReq, ExamStatisticsVO, QuestionStatisticsVO, UserExamHistoryVO, Summary |
 
 ---
 

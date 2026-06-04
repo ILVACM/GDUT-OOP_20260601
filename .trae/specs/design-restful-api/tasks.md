@@ -1,0 +1,43 @@
+# Tasks
+
+- [x] Task 1: 创建全局基础设施（common 包）
+  - [x] SubTask 1.1: 创建 `Result<T>` 统一返回类
+  - [x] SubTask 1.2: 创建 `BusinessException` 业务异常类
+  - [x] SubTask 1.3: 创建 `GlobalExceptionHandler` 全局异常处理器
+  - [x] SubTask 1.4: 创建 `PageResult<T>` 分页返回类
+- [x] Task 2: 实现 M01 用户认证模块 Controller
+  - [x] SubTask 2.1: 实现认证接口（登录/注册/注销/当前用户/修改密码）
+  - [x] SubTask 2.2: 实现用户管理接口（列表/创建/更新/状态切换/删除/批量删除）
+- [x] Task 3: 实现 M02 题库管理模块 Controller
+  - [x] SubTask 3.1: 实现题目 CRUD 接口
+  - [x] SubTask 3.2: 实现批量导入接口（含 answer JSON 校验）
+- [x] Task 4: 实现 M03 考试与组卷模块 Controller
+  - [x] SubTask 4.1: 实现手动组卷和自动组卷接口
+  - [x] SubTask 4.2: 实现考试生命周期管理（发布/撤回/删除/更新）
+  - [x] SubTask 4.3: 实现考试列表和学生可参加考试接口
+  - [x] SubTask 4.4: 实现学生视角预览接口（答案脱敏）
+- [x] Task 5: 实现 M04 分数与统计模块 Controller
+  - [x] SubTask 5.1: 实现提交答卷接口（含判分逻辑）
+  - [x] SubTask 5.2: 实现简答题评卷接口
+  - [x] SubTask 5.3: 实现分数查询接口（个人/考试维度）
+  - [x] SubTask 5.4: 实现错题集查询接口
+  - [x] SubTask 5.5: 实现统计报表接口
+- [x] Task 6: 实现答题草稿（自动保存）功能
+  - [x] SubTask 6.1: 创建草稿缓存服务（内存/Redis）
+  - [x] SubTask 6.2: 实现草稿保存和加载接口
+  - [x] SubTask 6.3: 交卷时自动清理草稿
+- [x] Task 7: 实现 JWT 认证拦截器
+  - [x] SubTask 7.1: 创建 JWT 工具类（签发/解析/校验）
+  - [x] SubTask 7.2: 创建 `@RequireRole` 注解和拦截器
+  - [x] SubTask 7.3: 配置 Spring Security 或拦截器链
+- [x] Task 8: 编写接口文档 Wiki
+  - [x] SubTask 8.1: 将 spec.md 内容整理为 `wiki/API-Reference.md`
+
+# Task Dependencies
+- [Task 2] depends on [Task 1], [Task 7]
+- [Task 3] depends on [Task 1], [Task 7]
+- [Task 4] depends on [Task 1], [Task 7], [Task 6]
+- [Task 5] depends on [Task 1], [Task 7], [Task 6]
+- [Task 6] depends on [Task 1]
+- [Task 7] depends on [Task 1]
+- [Task 8] depends on [Task 2], [Task 3], [Task 4], [Task 5]

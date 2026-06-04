@@ -279,21 +279,18 @@ public record ExamQuestionForStudentVO(
 
 | 方法 | 路径 | 鉴权 | 描述 | 请求 | 响应 |
 |---|---|---|---|---|---|
-| POST | `/api/exams/manual` | 老师 / 管理员 | 创建考试（手动组卷） | `ExamCreateManualReq` | `ExamVO` |
-| POST | `/api/exams/auto` | 老师 / 管理员 | 创建考试（自动组卷） | `ExamCreateAutoReq` | `ExamVO` |
-| GET | `/api/exams/{id}` | 老师 / 管理员 | 考试详情 | — | `ExamVO` |
-| GET | `/api/exams/{id}/preview` | 老师 / 管理员 | 学生视角预览（脱敏） | — | `ExamForStudentVO` |
-| PUT | `/api/exams/{id}` | 老师（自己） / 管理员 | 修改（**仅 `draft` 状态**） | `ExamCreateManualReq` | `ExamVO` |
-| POST | `/api/exams/{id}/publish` | 老师（自己） / 管理员 | 发布（`draft` → `publish`） | — | `Result<Void>` |
-| POST | `/api/exams/{id}/withdraw` | 老师（自己） / 管理员 | 撤回（`publish` → `draft`） | — | `Result<Void>` |
-| DELETE | `/api/exams/{id}` | 老师（自己） / 管理员 | 删除（**仅 `draft` 状态**） | — | `Result<Void>` |
-| GET | `/api/exams` | 老师 / 管理员 | 分页查询（按 `status` / 时间） | `?status=&page=&size=` | `PageResult<ExamVO>` |
-| GET | `/api/exams/available` | 学生 | 列出可参加的考试（`publish` / `running`） | — | `List<ExamForStudentVO>` |
+| POST | `/api/v1/exams/manual` | 老师 / 管理员 | 创建考试（手动组卷） | `ExamCreateManualReq` | `ExamVO` |
+| POST | `/api/v1/exams/auto` | 老师 / 管理员 | 创建考试（自动组卷） | `ExamCreateAutoReq` | `ExamVO` |
+| GET | `/api/v1/exams/available` | 学生 | 列出可参加的考试 | — | `List<ExamForStudentVO>` |
+| GET | `/api/v1/exams/{id}` | 老师 / 管理员 | 考试详情 | — | `ExamVO` |
+| GET | `/api/v1/exams/{id}/preview` | 学生 | 学生视角预览（脱敏） | — | `ExamForStudentVO` |
+| PUT | `/api/v1/exams/{id}` | 老师 / 管理员 | 修改（**仅 `draft` 状态**） | `ExamCreateManualReq` | `ExamVO` |
+| POST | `/api/v1/exams/{id}/publish` | 老师 / 管理员 | 发布（`draft` → `publish`） | — | `Result<Void>` |
+| POST | `/api/v1/exams/{id}/withdraw` | 老师 / 管理员 | 撤回（`publish` → `draft`） | — | `Result<Void>` |
+| DELETE | `/api/v1/exams/{id}` | 老师 / 管理员 | 删除（**仅 `draft` 状态**） | — | `Result<Void>` |
+| GET | `/api/v1/exams` | 老师 / 管理员 | 分页查询（按 `status` / 时间） | `?status=&page=&size=` | `PageResult<ExamVO>` |
 
-> **v2.0.0 简化**：
-> - 路径前缀 `/api/v1/` → `/api/`
-> - **移除** `PATCH /api/v1/exams/{id}/archive`（无 `ARCHIVED` 状态）
-> - `POST /api/v1/exams`（手动/自动合用）→ 拆分为 `/api/exams/manual` + `/api/exams/auto`，行为更明确
+> **API 前缀**：`/api/v1/`（与代码实际一致）。
 
 ---
 
@@ -400,11 +397,11 @@ public ExamStatus resolveCurrentStatus(Exam exam, LocalDateTime now) {
 | 层级 | 实现状态 | 说明 |
 |---|---|---|
 | Entity | ✅ 已实现 | 字段与 02-Data-Dictionary.md 完全一致 |
-| Enum | ✅ 已实现 | |
-| Repository | ✅ 已实现 | 核心查询方法已实现 |
-| Controller | ❌ 未实现 | API 端点尚未开发 |
-| Service | ❌ 未实现 | 业务逻辑尚未开发 |
-| DTO | ❌ 未实现 | 请求/响应 Record 尚未开发 |
+| Enum | ✅ 已实现 | ExamStatus |
+| Repository | ✅ 已实现 | findByStatus / findByTimeWindow / findByStatusNot |
+| Controller | ✅ 已实现 | 10 个端点（manual/auto/available/getById/preview/update/publish/withdraw/delete/list） |
+| Service | ✅ 已实现 | createManualExam/createAutoExam/listAvailableExams/getExamById/getExamForStudent/updateExam/publishExam/withdrawExam/deleteExam/listExams |
+| DTO | ✅ 已实现 | ExamCreateManualReq/AutoReq, ExamVO/ForStudentVO, ExamQuestionItemReq/VO/ForStudentVO, QuestionSum/Item, AutoRule |
 
 ---
 

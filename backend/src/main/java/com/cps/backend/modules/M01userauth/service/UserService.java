@@ -1,5 +1,6 @@
 package com.cps.backend.modules.M01userauth.service;
 
+import com.cps.backend.common.api.PageResult;
 import com.cps.backend.common.exception.BusinessException;
 import com.cps.backend.modules.M01userauth.dto.*;
 import com.cps.backend.modules.M01userauth.entity.User;
@@ -59,54 +60,10 @@ public class UserService {
         return new LoginResp(null, toVO(user));
     }
 
-    public UserVO findById(Integer id) {
-        User user = userRepository.findById(id)
+    public UserVO getCurrentUser(Integer userId) {
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new BusinessException(4101, "用户不存在"));
         return toVO(user);
-    }
-
-    public List<UserVO> findByTypeAndStatus(UserType type, Integer status) {
-        if (type != null && status != null) {
-            return userRepository.findByTypeAndStatus(type, status).stream().map(this::toVO).toList();
-        } else if (type != null) {
-            return userRepository.findByType(type).stream().map(this::toVO).toList();
-        } else {
-            return userRepository.findAll().stream().map(this::toVO).toList();
-        }
-    }
-
-    public Page<UserVO> findPage(UserType type, Integer status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        // 简化实现：先查全量再过滤分页（题库规模小，可接受）
-        // 生产环境应使用 JPA Specification 动态查询
-        if (type != null && status != null) {
-            List<UserVO> filtered = userRepository.findByTypeAndStatus(type, status).stream().map(this::toVO).toList();
-            int start = Math.min(page * size, filtered.size());
-            int end = Math.min(start + size, filtered.size());
-            return new org.springframework.data.domain.PageImpl<>(filtered.subList(start, end), pageable, filtered.size());
-        } else if (type != null) {
-            List<UserVO> filtered = userRepository.findByType(type).stream().map(this::toVO).toList();
-            int start = Math.min(page * size, filtered.size());
-            int end = Math.min(start + size, filtered.size());
-            return new org.springframework.data.domain.PageImpl<>(filtered.subList(start, end), pageable, filtered.size());
-        } else {
-            return userRepository.findAll(pageable).map(this::toVO);
-        }
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public UserVO update(Integer id, RegisterReq req) {
-        User user = userRepository.findById(id)
-            .orElseThrow(() -> new BusinessException(4101, "用户不存在"));
-        // 如果修改了 name，需校验唯一性
-        if (!user.getName().equals(req.name()) && userRepository.existsByName(req.name())) {
-            throw new BusinessException(4101, "用户名已存在");
-        }
-        user.setName(req.name());
-        user.setPassword(passwordEncoder.encode(req.password()));
-        user.setType(req.type());
-        User saved = userRepository.save(user);
-        return toVO(saved);
     }
 
     // 参考 M01-User-Auth.md §6 — 修改密码需校验旧密码
@@ -121,9 +78,56 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public PageResult<UserVO> listUsers(Integer page, Integer size, UserType type, Integer status) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        if (type != null && status != null) {
+            List<UserVO> filtered = userRepository.findByTypeAndStatus(type, status).stream().map(this::toVO).toList();
+            int start = Math.min(page * size, filtered.size());
+            int end = Math.min(start + size, filtered.size());
+            return PageResult.of(new org.springframework.data.domain.PageImpl<>(filtered.subList(start, end), pageable, filtered.size()));
+        } else if (type != null) {
+            List<UserVO> filtered = userRepository.findByType(type).stream().map(this::toVO).toList();
+            int start = Math.min(page * size, filtered.size());
+            int end = Math.min(start + size, filtered.size());
+            return PageResult.of(new org.springframework.data.domain.PageImpl<>(filtered.subList(start, end), pageable, filtered.size()));
+        } else {
+            return PageResult.of(userRepository.findAll(pageable).map(this::toVO));
+        }
+    }
+
+    // 管理员创建用户（可创建任意角色）
+    @Transactional(rollbackFor = Exception.class)
+    public UserVO createUser(RegisterReq req) {
+        if (userRepository.existsByName(req.name())) {
+            throw new BusinessException(4101, "用户名已存在");
+        }
+        User user = new User();
+        user.setName(req.name());
+        user.setPassword(passwordEncoder.encode(req.password()));
+        user.setType(req.type());
+        user.setStatus(1);
+        User saved = userRepository.save(user);
+        return toVO(saved);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public UserVO updateUser(Integer id, RegisterReq req) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new BusinessException(4101, "用户不存在"));
+        // 如果修改了 name，需校验唯一性
+        if (!user.getName().equals(req.name()) && userRepository.existsByName(req.name())) {
+            throw new BusinessException(4101, "用户名已存在");
+        }
+        user.setName(req.name());
+        user.setPassword(passwordEncoder.encode(req.password()));
+        user.setType(req.type());
+        User saved = userRepository.save(user);
+        return toVO(saved);
+    }
+
     // 参考 M01-User-Auth.md §7 业务规则2 — admin 保护
     @Transactional(rollbackFor = Exception.class)
-    public void updateStatus(Integer id, UserStatusReq req) {
+    public void updateUserStatus(Integer id, UserStatusReq req) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new BusinessException(4101, "用户不存在"));
         // 禁用 admin 时检查是否为最后一个
@@ -140,7 +144,7 @@ public class UserService {
 
     // 参考 M01-User-Auth.md §7 业务规则3/4 — 自删除保护 + 级联禁用
     @Transactional(rollbackFor = Exception.class)
-    public void delete(Integer id, Integer currentUserId) {
+    public void deleteUser(Integer id, Integer currentUserId) {
         if (id.equals(currentUserId)) {
             throw new BusinessException(4103, "不能删除自己");
         }
@@ -160,6 +164,14 @@ public class UserService {
             throw new BusinessException(4103, "该用户存在考试记录，已禁用而非删除");
         }
         userRepository.delete(user);
+    }
+
+    // 批量删除用户
+    @Transactional(rollbackFor = Exception.class)
+    public void batchDeleteUsers(List<Integer> ids, Integer currentUserId) {
+        for (Integer id : ids) {
+            deleteUser(id, currentUserId);
+        }
     }
 
     // Entity → VO 转换，参考 01-Global-Standards.md §4.3 DTO 隔离

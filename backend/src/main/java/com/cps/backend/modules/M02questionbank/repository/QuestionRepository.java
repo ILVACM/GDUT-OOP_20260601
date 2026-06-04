@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Question 实体的 JPA Repository。
@@ -85,4 +86,21 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     @Modifying
     @Query("UPDATE Question q SET q.use = q.use - 1 WHERE q.id = :id AND q.use > 0")
     int decrementUse(@Param("id") Integer id);
+
+    /**
+     * 随机获取一道题目（排除已采纳的题目），用于自动组卷逐题筛选。
+     * <p>SQLite 使用 RANDOM() 函数进行随机排序。</p>
+     * <p>参考 M03-Exam-Assembly.md — 自动组卷单题获取模式。</p>
+     * @param type 题型筛选（可选）
+     * @param excludedIds 已采纳的题目 ID 列表
+     * @return 单道题目（Optional）
+     */
+    @Query("""
+        SELECT q FROM Question q
+        WHERE (:type IS NULL OR q.type = :type)
+          AND (:excludedIds IS NULL OR q.id NOT IN :excludedIds)
+        ORDER BY FUNCTION('RANDOM')
+        """)
+    Optional<Question> findRandomQuestion(@Param("type") QuestionType type,
+                                           @Param("excludedIds") List<Integer> excludedIds);
 }

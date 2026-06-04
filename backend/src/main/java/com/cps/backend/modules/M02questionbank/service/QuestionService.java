@@ -1,5 +1,6 @@
 package com.cps.backend.modules.M02questionbank.service;
 
+import com.cps.backend.common.api.PageResult;
 import com.cps.backend.common.exception.BusinessException;
 import com.cps.backend.modules.M02questionbank.dto.*;
 import com.cps.backend.modules.M02questionbank.entity.Question;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 // 参考 M02-Question-Bank.md §7/§8/§9
@@ -46,21 +48,35 @@ public class QuestionService {
 
     // 参考 M02-Question-Bank.md §8 业务规则4 — 批量导入限制
     @Transactional(rollbackFor = Exception.class)
-    public List<QuestionVO> batchCreate(List<QuestionCreateReq> reqs) {
+    public BatchImportResult batchCreate(List<QuestionCreateReq> reqs) {
         if (reqs.size() > 100) {
             throw new BusinessException(4200, "单次批量导入不超过100题");
         }
-        return reqs.stream().map(req -> {
-            validateAnswerJson(req.type(), req.answer());
-            Question question = new Question();
-            question.setType(req.type());
-            question.setContext(req.context());
-            question.setImg(req.img() != null ? req.img() : 0);
-            question.setAnswer(req.answer());
-            question.setUse(0);
-            question.setCorrect(0);
-            return toVO(questionRepository.save(question));
-        }).toList();
+        List<BatchImportResult.ImportError> errors = new ArrayList<>();
+        List<Question> toSave = new ArrayList<>();
+
+        for (int i = 0; i < reqs.size(); i++) {
+            QuestionCreateReq req = reqs.get(i);
+            try {
+                validateAnswerJson(req.type(), req.answer());
+                Question question = new Question();
+                question.setType(req.type());
+                question.setContext(req.context());
+                question.setImg(req.img() != null ? req.img() : 0);
+                question.setAnswer(req.answer());
+                question.setUse(0);
+                question.setCorrect(0);
+                toSave.add(question);
+            } catch (BusinessException e) {
+                errors.add(new BatchImportResult.ImportError(i, e.getMessage()));
+            }
+        }
+
+        List<Question> saved = questionRepository.saveAll(toSave);
+        int successCount = saved.size();
+        int failCount = errors.size();
+
+        return new BatchImportResult(successCount, failCount, errors);
     }
 
     public QuestionVO findById(Integer id) {
@@ -135,6 +151,22 @@ public class QuestionService {
         if (updated == 0) {
             throw new BusinessException(4201, "题目不存在或use已为0，无法回退统计");
         }
+    }
+
+    // 参考 M03-Exam-Assembly.md — 自动组卷单题获取模式
+    /**
+     * 随机获取单道题目（用于自动组卷逐题筛选）。
+     * 不操作数据库（仅查询），返回题目预览信息（不含答案）。
+     */
+    public QuestionPreviewVO getRandomQuestion(QuestionType type, List<Integer> excludedIds) {
+        return questionRepository.findRandomQuestion(type, excludedIds)
+            .map(q -> new QuestionPreviewVO(
+                q.getId(),
+                q.getType(),
+                q.getContext(),
+                q.getImg()
+            ))
+            .orElseThrow(() -> new BusinessException(4203, "没有符合条件的可用题目"));
     }
 
     // 参考 M02-Question-Bank.md §10 — 答案反序列化的多态处理

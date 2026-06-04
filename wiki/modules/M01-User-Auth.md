@@ -84,15 +84,17 @@ public record UserVO(Integer id, String name, UserType type, Integer status) {
 
 | 方法 | 路径 | 鉴权 | 描述 | 请求 | 响应 |
 |---|---|---|---|---|---|
-| POST | `/api/auth/login` | 公开 | 登录 | `LoginReq` | `LoginResp` |
-| POST | `/api/auth/logout` | 任意登录用户 | 注销 | — | `Result<Void>` |
-| GET | `/api/auth/me` | 任意登录用户 | 当前用户 | — | `UserVO` |
-| POST | `/api/auth/password` | 任意登录用户 | 修改自己的密码 | `ChangePasswordReq` | `Result<Void>` |
-| GET | `/api/users` | admin | 分页查询用户 | `?page=0&size=20&type=student` | `PageResult<UserVO>` |
-| POST | `/api/users` | admin | 创建用户 | `RegisterReq` | `UserVO` |
-| PUT | `/api/users/{id}` | admin | 更新用户 | `RegisterReq` | `UserVO` |
-| PATCH | `/api/users/{id}/status` | admin | 启用 / 禁用 | `UserStatusReq` | `Result<Void>` |
-| DELETE | `/api/users/{id}` | admin | 删除用户 | — | `Result<Void>` |
+| POST | `/api/v1/auth/register` | 公开 | 用户注册（仅 student） | `RegisterReq` | `UserVO` |
+| POST | `/api/v1/auth/login` | 公开 | 登录 | `LoginReq` | `LoginResp` |
+| POST | `/api/v1/auth/logout` | 任意登录用户 | 注销 | — | `Result<Void>` |
+| GET | `/api/v1/auth/me` | 任意登录用户 | 当前用户 | — | `UserVO` |
+| POST | `/api/v1/auth/password` | 任意登录用户 | 修改自己的密码 | `ChangePasswordReq` | `Result<Void>` |
+| GET | `/api/v1/users` | admin | 分页查询用户 | `?page=0&size=10&type=...&status=...` | `PageResult<UserVO>` |
+| POST | `/api/v1/users` | admin | 创建用户 | `RegisterReq` | `UserVO` |
+| PUT | `/api/v1/users/{id}` | admin | 更新用户 | `RegisterReq` | `UserVO` |
+| PATCH | `/api/v1/users/{id}/status` | admin | 启用 / 禁用 | `UserStatusReq` | `Result<Void>` |
+| DELETE | `/api/v1/users/{id}` | admin | 删除用户 | — | `Result<Void>` |
+| DELETE | `/api/v1/users/batch` | admin | 批量删除用户 | `BatchDeleteReq` | `Result<Void>` |
 
 ---
 
@@ -164,11 +166,11 @@ public Result<Void> deleteUser(@PathVariable Long id) { ... }
 | 层级 | 实现状态 | 说明 |
 |---|---|---|
 | Entity | ✅ 已实现 | 字段与 02-Data-Dictionary.md 完全一致 |
-| Enum | ✅ 已实现 | |
-| Repository | ✅ 已实现 | 核心查询方法已实现 |
-| Controller | ❌ 未实现 | API 端点尚未开发 |
-| Service | ❌ 未实现 | 业务逻辑尚未开发 |
-| DTO | ❌ 未实现 | 请求/响应 Record 尚未开发 |
+| Enum | ✅ 已实现 | UserType |
+| Repository | ✅ 已实现 | findByName / existsByName / findByTypeAndStatus / findByType |
+| Controller | ✅ 已实现 | 11 个端点（register/login/logout/me/password/users CRUD/batch） |
+| Service | ✅ 已实现 | register/login/getCurrentUser/changePassword/listUsers/createUser/updateUser/updateUserStatus/deleteUser/batchDeleteUsers |
+| DTO | ✅ 已实现 | LoginReq/Resp, RegisterReq, UserVO, ChangePasswordReq, UserStatusReq, BatchDeleteReq |
 
 ---
 
