@@ -109,6 +109,7 @@ export interface ExamQuestionForStudentVO {
   type: QuestionType
   context: string
   img: number
+  imageUrl: string | null  // 图片 URL（img=1 时返回，否则为 null）
   options: any  // 从 question.answer.options 提取（仅单选/多选）
   score: number
 }

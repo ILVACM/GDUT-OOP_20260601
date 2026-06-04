@@ -8,6 +8,7 @@ public record ExamQuestionForStudentVO(
     QuestionType type,
     String context,
     Integer img,
+    String imageUrl,      // 图片 URL（img=1 时返回，否则为 null）
     Object options,  // 从 question.answer.options 提取（仅单选/多选）
     Integer score
 ) {}

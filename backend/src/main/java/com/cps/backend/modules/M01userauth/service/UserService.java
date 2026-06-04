@@ -47,10 +47,26 @@ public class UserService {
     }
 
     // 参考 M01-User-Auth.md §6 密码安全 — BCrypt 校验
+    // 兼容数据库中已存在的明文密码，首次登录成功后自动升级为 BCrypt 加密
+    @Transactional(rollbackFor = Exception.class)
     public LoginResp login(LoginReq req) {
         User user = userRepository.findByName(req.name())
             .orElseThrow(() -> new BusinessException(4101, "用户名或密码错误"));
-        if (!passwordEncoder.matches(req.password(), user.getPassword())) {
+
+        boolean passwordMatch;
+        if (user.getPassword().startsWith("$2")) {
+            // BCrypt 格式，正常校验
+            passwordMatch = passwordEncoder.matches(req.password(), user.getPassword());
+        } else {
+            // 明文格式，兼容校验并自动加密
+            passwordMatch = req.password().equals(user.getPassword());
+            if (passwordMatch) {
+                user.setPassword(passwordEncoder.encode(req.password()));
+                userRepository.save(user);
+            }
+        }
+
+        if (!passwordMatch) {
             throw new BusinessException(4101, "用户名或密码错误");
         }
         if (user.getStatus() == 0) {
@@ -177,5 +193,20 @@ public class UserService {
     // Entity → VO 转换，参考 01-Global-Standards.md §4.3 DTO 隔离
     private UserVO toVO(User user) {
         return new UserVO(user.getId(), user.getName(), user.getType(), user.getStatus());
+    }
+
+    // 别名方法，用于兼容旧测试代码
+    public void updateStatus(Integer id, UserStatusReq req) {
+        updateUserStatus(id, req);
+    }
+
+    // 别名方法，用于兼容旧测试代码
+    public UserVO findById(Integer id) {
+        return getCurrentUser(id);
+    }
+
+    // 别名方法，用于兼容旧测试代码
+    public void delete(Integer id, Integer currentUserId) {
+        deleteUser(id, currentUserId);
     }
 }

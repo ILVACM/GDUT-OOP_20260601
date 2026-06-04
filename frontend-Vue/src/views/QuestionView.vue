@@ -193,15 +193,15 @@ const formRules: FormRules = {
 const buildAnswer = (): any => {
   switch (form.type) {
     case 'SingleChoice':
-      return { version: 1, correctOption: form.correctOption, options: form.options }
+      return { version: 1, type: 'SingleChoice', correctOption: form.correctOption, options: form.options }
     case 'MultipleChoice':
-      return { version: 1, correctOptions: form.correctOptions, options: form.options }
+      return { version: 1, type: 'MultipleChoice', correctOptions: form.correctOptions, options: form.options }
     case 'Judge':
-      return { version: 1, correct: form.judgeCorrect }
+      return { version: 1, type: 'Judge', correct: form.judgeCorrect }
     case 'Fill':
-      return { version: 1, blanks: form.blanks }
+      return { version: 1, type: 'Fill', blanks: form.blanks }
     case 'Essay':
-      return { version: 1, reference: form.reference, keywords: form.keywords, scoreRule: '' }
+      return { version: 1, type: 'Essay', reference: form.reference, keywords: form.keywords, scoreRule: '' }
     default:
       return {}
   }
@@ -280,7 +280,7 @@ const handleSubmit = async () => {
       type: form.type,
       context: form.context,
       img: form.imgBool ? 1 : 0,
-      answer: buildAnswer(),
+      answer: JSON.stringify(buildAnswer()),
     }
     if (isEdit.value && editId.value) {
       await updateQuestion(editId.value, data)

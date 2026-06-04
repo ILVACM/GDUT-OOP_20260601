@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { UserType, UserVO, LoginReq, RegisterReq, ChangePasswordReq } from '@/types'
 import { login as apiLogin, register as apiRegister, logout as apiLogout, me as apiMe, changePassword as apiChangePassword } from '@/api/auth'
+import { resetRedirecting } from '@/utils/request'
 
 export const useUserStore = defineStore('user', () => {
   const token = ref<string>('')
@@ -15,6 +16,7 @@ export const useUserStore = defineStore('user', () => {
     const resp = await apiLogin(req)
     token.value = resp.token
     user.value = resp.user
+    resetRedirecting() // 重置过期重定向锁，确保下次过期能正常提示
   }
 
   async function register(req: RegisterReq) {

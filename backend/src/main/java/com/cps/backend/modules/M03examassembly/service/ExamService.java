@@ -12,12 +12,14 @@ import com.cps.backend.modules.M03examassembly.enums.ExamStatus;
 import com.cps.backend.modules.M03examassembly.repository.ExamRepository;
 import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +33,12 @@ public class ExamService {
     private final QuestionRepository questionRepository;
     private final QuestionService questionService;
     private final ObjectMapper objectMapper;
+
+    @Value("${user.dir}")
+    private String userDir;
+
+    // 参考 02-Data-Dictionary.md §4.2.2 — 支持的图片扩展名
+    private static final String[] IMG_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif"};
 
     // 参考 M03-Exam-Assembly.md §3.1 — 手动组卷
     @Transactional(rollbackFor = Exception.class)
@@ -73,6 +81,12 @@ public class ExamService {
         }
 
         return toVO(saved);
+    }
+
+    // 别名方法，用于兼容旧测试代码
+    @Transactional(rollbackFor = Exception.class)
+    public ExamVO createManual(ExamCreateManualReq req) {
+        return createManualExam(req);
     }
 
     // 参考 M03-Exam-Assembly.md §3.2 — 自动组卷
@@ -133,6 +147,12 @@ public class ExamService {
         return toVO(saved);
     }
 
+    // 别名方法，用于兼容旧测试代码
+    @Transactional(rollbackFor = Exception.class)
+    public ExamVO createAuto(ExamCreateAutoReq req) {
+        return createAutoExam(req);
+    }
+
     public ExamVO getExamById(Integer id) {
         Exam exam = examRepository.findById(id)
             .orElseThrow(() -> new BusinessException(4301, "考试不存在"));
@@ -161,11 +181,14 @@ public class ExamService {
                 if (q == null) return null;
                 // 参考 M03-Exam-Assembly.md §7 业务规则7 — 答案下发安全：剔除判分关键字段
                 Object options = extractOptionsOnly(q);
+                // 参考 02-Data-Dictionary.md §4.2.2 — 图片 URL 生成
+                String imageUrl = resolveImageUrl(q.getId(), q.getImg());
                 return new ExamQuestionForStudentVO(
                     q.getId(),
                     q.getType(),
                     q.getContext(),
                     q.getImg(),
+                    imageUrl,
                     options,
                     item.score()
                 );
@@ -194,6 +217,13 @@ public class ExamService {
         examRepository.save(exam);
     }
 
+    // 别名方法，用于兼容旧测试代码
+    @Transactional(rollbackFor = Exception.class)
+    public ExamVO publish(Integer id) {
+        publishExam(id);
+        return getExamById(id);
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public void withdrawExam(Integer id) {
         Exam exam = examRepository.findById(id)
@@ -203,6 +233,12 @@ public class ExamService {
         }
         exam.setStatus(ExamStatus.draft);
         examRepository.save(exam);
+    }
+
+    // 别名方法，用于兼容旧测试代码
+    public ExamVO withdraw(Integer id) {
+        withdrawExam(id);
+        return getExamById(id);
     }
 
     // 参考 M03-Exam-Assembly.md §7 业务规则1 — 草稿可改、发布后不可改
@@ -283,6 +319,21 @@ public class ExamService {
             questionService.decrementUse(item.questionId());
         }
         examRepository.delete(exam);
+    }
+
+    // 别名方法，用于兼容旧测试代码
+    public void delete(Integer id) {
+        deleteExam(id);
+    }
+
+    // 别名方法，用于兼容旧测试代码
+    public ExamVO findById(Integer id) {
+        return getExamById(id);
+    }
+
+    // 别名方法，用于兼容旧测试代码
+    public ExamVO edit(Integer id, ExamCreateManualReq req) {
+        return updateExam(id, req);
     }
 
     // 参考 M03-Exam-Assembly.md §7.4 — 分页查询考试列表（教师/管理员）
@@ -402,6 +453,28 @@ public class ExamService {
             // 解析失败返回 null
         }
         return null;
+    }
+
+    /**
+     * 根据题目 ID 和 img 标志解析图片 URL。
+     * 参考 02-Data-Dictionary.md §4.2.2 — img 路径匹配规则
+     * img=1 时，在 Data/img/ 目录下查找 {questionId}.{ext} 图片
+     * 支持 .png / .jpg / .jpeg / .gif 扩展名，找到第一个存在的即返回
+     * @return 相对 URL 路径（如 /api/v1/images/4.png），若无图则返回 null
+     */
+    private String resolveImageUrl(Integer questionId, Integer img) {
+        if (img == null || img != 1) {
+            return null;
+        }
+        // 在 Data/img/ 目录下查找对应扩展名的图片
+        String imgDir = userDir + "/../Data/img/";
+        for (String ext : IMG_EXTENSIONS) {
+            File file = new File(imgDir + questionId + ext);
+            if (file.exists()) {
+                return "/api/v1/images/" + questionId + ext;
+            }
+        }
+        return null; // 标记有图但文件不存在
     }
 
     private QuestionSum parseQuestionSum(String json) {

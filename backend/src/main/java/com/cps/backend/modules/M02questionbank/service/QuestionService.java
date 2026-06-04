@@ -34,12 +34,13 @@ public class QuestionService {
     // 参考 M02-Question-Bank.md §8 业务规则5 — 答案强校验
     @Transactional(rollbackFor = Exception.class)
     public QuestionVO create(QuestionCreateReq req) {
-        validateAnswerJson(req.type(), req.answer());
+        String answerJson = answerToJsonString(req.answer());
+        validateAnswerJson(req.type(), answerJson);
         Question question = new Question();
         question.setType(req.type());
         question.setContext(req.context());
         question.setImg(req.img() != null ? req.img() : 0);
-        question.setAnswer(req.answer());
+        question.setAnswer(answerJson);
         question.setUse(0);
         question.setCorrect(0);
         Question saved = questionRepository.save(question);
@@ -58,12 +59,13 @@ public class QuestionService {
         for (int i = 0; i < reqs.size(); i++) {
             QuestionCreateReq req = reqs.get(i);
             try {
-                validateAnswerJson(req.type(), req.answer());
+                String answerJson = answerToJsonString(req.answer());
+                validateAnswerJson(req.type(), answerJson);
                 Question question = new Question();
                 question.setType(req.type());
                 question.setContext(req.context());
                 question.setImg(req.img() != null ? req.img() : 0);
-                question.setAnswer(req.answer());
+                question.setAnswer(answerJson);
                 question.setUse(0);
                 question.setCorrect(0);
                 toSave.add(question);
@@ -96,10 +98,11 @@ public class QuestionService {
         Question question = questionRepository.findById(id)
             .orElseThrow(() -> new BusinessException(4201, "题目不存在"));
         // 参考 M02-Question-Bank.md §8 业务规则5 — 更新时也需校验 answer JSON
-        validateAnswerJson(question.getType(), req.answer());
+        String answerJson = answerToJsonString(req.answer());
+        validateAnswerJson(question.getType(), answerJson);
         question.setContext(req.context());
         question.setImg(req.img() != null ? req.img() : question.getImg());
-        question.setAnswer(req.answer());
+        question.setAnswer(answerJson);
         Question saved = questionRepository.save(question);
         return toVO(saved);
     }
@@ -167,6 +170,24 @@ public class QuestionService {
                 q.getImg()
             ))
             .orElseThrow(() -> new BusinessException(4203, "没有符合条件的可用题目"));
+    }
+
+    /**
+     * 将 answer（可能是 String 或 Object）统一转为 JSON 字符串。
+     * <p>前端可以传 JSON 字符串或 JSON 对象，均能正确处理。</p>
+     */
+    private String answerToJsonString(Object answer) {
+        if (answer == null) {
+            throw new BusinessException(4202, "答案不能为空");
+        }
+        if (answer instanceof String s) {
+            return s;
+        }
+        try {
+            return objectMapper.writeValueAsString(answer);
+        } catch (Exception e) {
+            throw new BusinessException(4202, "答案序列化失败: " + e.getMessage());
+        }
     }
 
     // 参考 M02-Question-Bank.md §10 — 答案反序列化的多态处理

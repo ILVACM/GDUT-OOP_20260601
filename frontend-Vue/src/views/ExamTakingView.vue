@@ -17,6 +17,22 @@
       </div>
       <div style="margin-bottom: 12px; line-height: 1.6">{{ item.context }}</div>
 
+      <!-- 题目图片 -->
+      <div v-if="item.imageUrl" style="margin-bottom: 12px">
+        <el-image
+          :src="item.imageUrl"
+          :preview-src-list="[item.imageUrl]"
+          fit="contain"
+          style="max-width: 100%; max-height: 400px"
+          alt="题目图片"
+          lazy
+        >
+          <template #error>
+            <div style="color: #909399; font-size: 12px">图片加载失败</div>
+          </template>
+        </el-image>
+      </div>
+
       <!-- 单选题 -->
       <el-radio-group v-if="item.type === 'SingleChoice'" :model-value="answers[item.questionId]" @update:model-value="val => updateAnswer(item.questionId, val)">
         <div v-for="opt in item.options || []" :key="opt" style="margin-bottom: 8px">

@@ -6,5 +6,5 @@ import jakarta.validation.constraints.NotBlank;
 public record QuestionUpdateReq(
     @NotBlank String context,
     Integer img,
-    @NotBlank String answer  // JSON 字符串
+    Object answer           // 支持字符串或对象
 ) {}

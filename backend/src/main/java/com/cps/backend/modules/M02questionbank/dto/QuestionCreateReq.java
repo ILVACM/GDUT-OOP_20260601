@@ -10,5 +10,5 @@ public record QuestionCreateReq(
     @NotNull QuestionType type,
     @NotBlank @Size(max = 5000) String context,
     Integer img,            // 可选，默认 0
-    @NotNull String answer  // JSON 字符串
+    Object answer           // 支持字符串或对象
 ) {}

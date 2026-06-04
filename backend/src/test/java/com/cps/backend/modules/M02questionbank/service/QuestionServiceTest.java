@@ -125,8 +125,8 @@ class QuestionServiceTest {
             new QuestionCreateReq(QuestionType.Judge, "Q1", 0, judgeAnswerJson()),
             new QuestionCreateReq(QuestionType.Judge, "Q2", 0, judgeAnswerJson())
         );
-        List<QuestionVO> vos = questionService.batchCreate(reqs);
-        assertEquals(2, vos.size());
+        BatchImportResult result = questionService.batchCreate(reqs);
+        assertEquals(2, result.successCount());
     }
 
     @Test
