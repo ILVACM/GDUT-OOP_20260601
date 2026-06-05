@@ -114,15 +114,7 @@ public class QuestionService {
             throw new BusinessException(4201, "题目不存在");
         }
         // 参考 M02-Question-Bank.md §8 业务规则3 — 删除被引用题目的警告
-        List<com.cps.backend.modules.M03examassembly.entity.Exam> allExams = examRepository.findAll();
-        boolean isReferenced = allExams.stream().anyMatch(exam -> {
-            try {
-                String qs = exam.getQuestionSum();
-                return qs != null && qs.contains("\"questionId\":" + id);
-            } catch (Exception e) {
-                return false;
-            }
-        });
+        boolean isReferenced = examRepository.existsByQuestionIdInQuestionSum(id);
         if (isReferenced) {
             log.warn("题目 id={} 已被考试引用，删除后历史考试快照不受影响但统计将停留在删除时", id);
         }

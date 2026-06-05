@@ -48,4 +48,17 @@ public interface ExamRepository extends JpaRepository<Exam, Integer> {
      */
     @EntityGraph(attributePaths = {})
     List<Exam> findByStatusNot(ExamStatus status);
+
+    /**
+     * 检查指定题目ID是否被任何考试引用。
+     * 使用SQLite的json_each函数精确解析JSON数组，逐条比较questionId，彻底避免字符串匹配误判。
+     * 
+     * @param questionId 题目ID
+     * @return 如果存在引用则返回true，否则返回false
+     */
+    @Query(value = "SELECT CASE WHEN EXISTS(" +
+           "  SELECT 1 FROM exam, json_each(exam.question_sum, '$.items') as item " +
+           "  WHERE json_extract(item.value, '$.questionId') = :questionId" +
+           ") THEN 1 ELSE 0 END", nativeQuery = true)
+    boolean existsByQuestionIdInQuestionSum(@Param("questionId") Integer questionId);
 }
