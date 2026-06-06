@@ -37,6 +37,7 @@
 - [Quick Start](#-quick-start)
 - [Project Structure](#-project-structure)
 - [Documentation](#-documentation)
+- [About the Author](#-about-the-author)
 - [Contributing & Acknowledgements](#-contributing--acknowledgements)
 - [License](#-license)
 
@@ -244,42 +245,57 @@ npm run dev
 
 ## Project Structure
 
-```
-GDUT-OOP_20260601/
-├── backend/                          # Spring Boot Backend
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/cps/backend/
-│   │   │   │   ├── common/           # Shared infrastructure
-│   │   │   │   │   ├── api/          # Result<T>, PageResult<T>
-│   │   │   │   │   ├── exception/    # BusinessException, GlobalExceptionHandler
-│   │   │   │   │   ├── config/       # WebMvcConfig
-│   │   │   │   │   └── security/     # JWT utilities & interceptor
-│   │   │   │   ├── modules/          # Business modules (vertical slice)
-│   │   │   │   │   ├── M01userauth/         # User authentication & management
-│   │   │   │   │   ├── M02questionbank/     # Question bank CRUD
-│   │   │   │   │   ├── M03examassembly/     # Exam assembly & lifecycle
-│   │   │   │   │   └── M04scorestatistics/  # Scoring & statistics
-│   │   │   │   └── BackendApplication.java
-│   │   │   └── resources/
-│   │   │       └── application.yaml  # Production config (PRAGMA, HikariCP, JPA)
-│   │   └── test/                     # 73 unit/integration tests (all passing)
-│   │       └── resources/
-│   │           ├── application-test.yaml
-│   │           └── schema/*.sql      # DDL scripts
-│   └── pom.xml
-├── frontend/                         # Vue 3 Frontend (pending creation)
-├── Data/
-│   ├── English.sqlite               # SQLite database file
-│   └── img/                         # Question images (matched by question ID)
-├── scripts/                          # SQL DDL scripts (table_*.sql)
-├── wiki/                             # Project documentation
-│   ├── 00-INDEX.md                  # Master index & navigation
-│   ├── 01-Global-Standards.md       # API contracts, JPA specs, coding standards
-│   ├── 02-Data-Dictionary.md        # Database schema & entity mapping
-│   ├── modules/                     # Module-level design docs (M01-M04)
-│   └── references/                  # Technical references & guides
-└── LICENSE
+```mermaid
+mindmap
+  root((GDUT-OOP))
+    backend
+      src
+        main
+          java/com/cps/backend
+            common
+              api
+                Result T
+                PageResult T
+              exception
+                BusinessException
+                GlobalExceptionHandler
+              config
+                WebMvcConfig
+              security
+                JwtUtil
+                JwtInterceptor
+                RequireRole
+            modules
+              M01userauth
+                User Auth
+              M02questionbank
+                Question CRUD
+              M03examassembly
+                Exam Lifecycle
+              M04scorestatistics
+                Scoring & Stats
+            BackendApplication
+          resources
+            application.yaml
+        test
+          resources
+            application-test.yaml
+            schema DDL
+      pom.xml
+    frontend
+      Vue 3 Pending
+    Data
+      English.sqlite
+      img Question Images
+    scripts
+      table SQL
+    wiki
+      00-INDEX.md
+      01-Global-Standards.md
+      02-Data-Dictionary.md
+      modules M01-M04
+      references
+    LICENSE
 ```
 
 ***
@@ -301,20 +317,50 @@ Detailed technical documentation is available in the `wiki/` directory:
 
 ***
 
+## About the Author
+
+<table>
+  <tr>
+    <td width="120" align="center">
+      <img src="Data/Vue/logo.png" alt="Author Avatar" width="80" style="border-radius: 50%;" />
+    </td>
+    <td>
+      <strong>黄泊凯 (Bobo Huang)</strong><br/>
+      🎓 广东工业大学 · 计算机学院 · 软件工程专业 · 23级本科生（大三）<br/>
+      🔬 师从 <strong>物理信息融合实验室国家地方工程中心（CPS）</strong> · 黄国恒 副教授<br/>
+      📧 <a href="mailto:3347620766@qq.com">3347620766@qq.com</a> &nbsp;|&nbsp; 📱 <code>13600323338</code>
+    </td>
+  </tr>
+</table>
+
+> 💡 *"Code is a medium of thought — and AI is becoming the most fluent collaborator."*
+
+***
+
 ## Contributing & Acknowledgements
 
-### About This Project
+### 🙏 Acknowledgements
 
-This project is the final assignment for the **Object-Oriented Software Design & Modeling** course (*面向对象软件设计与建模*), completed during the junior year second semester at Guangdong University of Technology.
+First and foremost, sincere gratitude to:
 
-### Acknowledgements
+- **广东工业大学计算机学院** — For providing the academic foundation and curriculum that inspired this project.
+- **物理信息融合实验室国家地方工程中心（CPS）** — For the research environment and resources that made this work possible.
+- **导师 黄国恒 副教授** — For guidance, support, and encouragement throughout the development process.
+- **《面向对象软件设计与建模》课程教学团队** — For the well-designed requirements specification and development guidelines that served as the blueprint for this system.
 
-- **AI-Assisted Development**: This project was developed with the assistance of [Trae CN](https://www.trae.ai/) AI Agent, which played a significant role in architecture design, code generation, testing, and documentation.
-- **Course Instructors**: Thanks to the course teaching team for providing the requirements specification and design guidelines.
+### 💌 Why Open Source?
 
-### Contributing
+> **不敢说给大家参考，十有八九是献丑。**
 
-Contributions are welcome! Please feel free to submit an Issue or open a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+This project is primarily a personal milestone — a digital time capsule of what a junior-year student achieved during the final weeks of a semester. The code may have its rough edges, the architecture may not be perfect, and there are certainly better ways to do many things.
+
+But if this repository can serve as even a tiny reference point for future students tackling their own course projects — whether it's the **system architecture design**, the **AI Agent-assisted development workflow**, or simply the courage to try something unconventional — then opening this repository will have been worth it.
+
+Think of it not as a tutorial, but as a proof of concept: *what happens when a student who truly understands their domain hands the keyboard to an AI Agent and says "let's build this together."*
+
+### 🤝 Contributing
+
+Contributions, issues, and suggestions are always welcome! Whether it's a bug fix, a feature request, or just a "hey, this inspired me" — feel free to reach out.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
