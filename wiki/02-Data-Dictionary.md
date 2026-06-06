@@ -1,4 +1,4 @@
-# 数据字典与 JPA 实体映射（v3.0.0）
+# 数据字典与 JPA 实体映射（v4.0.0）
 
 > 本文档是系统数据库结构的**唯一权威定义**。所有 JPA Entity、SQL DDL、Repository 查询都必须严格对齐本文档。如发现本文档设计有缺陷，必须先在本文档提出修改并经评审，再修改代码。
 >
@@ -870,6 +870,62 @@ public class Score {
 
 ---
 
+## 10.2 开发过程中遇到的问题与解决方案（v4.0.0 新增）
+
+> 本节记录 JPA/SQLite 适配过程中的典型问题与处置方案。
+
+### 问题 1：Boolean vs Integer 类型不匹配
+
+**现象**：在 `ddl-auto=validate` 模式下，Entity 中 `Boolean` 类型的字段（如 `user.status`、`question.img`）被 Hibernate 映射为 `TINYINT`，与 DDL 中 `INTEGER` 类型不一致，导致启动校验失败。
+
+**原因**：Hibernate 社区 SQLite 方言将 Java `Boolean` 映射为 SQL `TINYINT`，而 SQLite 实际以 `INTEGER` 存储布尔值（0/1）。
+
+**解决方案**：将 Entity 中布尔字段类型由 `Boolean` 改为 `Integer`（0/1），并显式声明 `columnDefinition = "INTEGER"`。
+
+**影响范围**：`User.status`、`Question.img`
+
+### 问题 2：LocalDateTime vs String 时间字段
+
+**现象**：Entity 中 `LocalDateTime` 类型的字段（如 `exam.starttime`、`exam.endtime`）在 `ddl-auto=validate` 模式下类型推断失败。
+
+**原因**：Hibernate 社区 SQLite 方言对 `LocalDateTime` → TEXT 的自动转换在 validate 模式下存在类型推断差异（方言将 Java 类型映射为非 TEXT 类型，而 SQLite 实际存储为 TEXT）。
+
+**解决方案**：将时间字段类型由 `LocalDateTime` 改为 `String`，存储 ISO 8601 格式字符串（如 `"2026-06-15T09:00:00"`）。
+
+**影响范围**：`Exam.starttime`、`Exam.endtime`
+
+### 问题 3：Score 外键映射方式
+
+**现象**：4 张核心表为独立设计（无 JPA `@ManyToOne`/`@OneToMany` 关联），但初始文档建议 Score 实体使用 `@JoinColumn`。
+
+**原因**：4 表独立设计下，物理外键字段类型为 `Integer`（而非实体对象），使用 `@JoinColumn` 会导致类型不匹配。
+
+**解决方案**：Score 实体中外键字段（`user`、`exam`）使用 `@Column(name = "user")` / `@Column(name = "exam")` 显式标注。物理外键语义由 DDL `FOREIGN KEY` 约束承载。
+
+**影响范围**：`Score.user`、`Score.exam`
+
+### 问题 4：主键类型选择
+
+**现象**：初始文档使用 `Long` 作为主键类型。
+
+**原因**：SQLite 自增 INTEGER 范围（最大 2^63-1）对于课程作业规模完全足够，且 DDL 中显式声明 `columnDefinition = "INTEGER"`。
+
+**解决方案**：将所有主键/外键 Java 类型由 `Long` 改为 `Integer`。
+
+**影响范围**：所有 Entity 的 `id` 字段、`Score` 的外键字段
+
+### 问题 5：SQLite JDBC 自动配置失败
+
+**现象**：测试环境启动时，`spring-boot-starter-data-jdbc-test` 依赖触发 `DataJdbcRepositoriesAutoConfiguration`，而 SQLite 不支持 JDBC 方言，导致测试启动失败。
+
+**原因**：Spring Boot 自动检测到 `spring-data-jdbc` 依赖存在时，会尝试配置 JDBC Repository 支持。
+
+**解决方案**：在 `application-test.yaml` 中通过 `spring.autoconfigure.exclude` 排除 `DataJdbcRepositoriesAutoConfiguration`。
+
+**影响范围**：仅测试环境（`application-test.yaml`）
+
+---
+
 ## 11. 待确认 / TODO 项
 
 > 下列内容在用户规范中**未明确**但实施时不可避免。建议在评审后定稿。
@@ -894,13 +950,13 @@ public class Score {
 | 2026-06-03 | v1.0.0 | 由 `temp.txt §4` 整合为正式数据字典；明确 JSON 字段结构与版本号；增加审计字段与乐观锁规范 |
 | 2026-06-04 | v1.1.0 | 依据用户决策彻底删除 `question_property` 表及"题目性质"业务概念；同步删除 `question.property_ids` 字段；表数从 6 张减至 5 张（T3 变更为 exam）；自动组卷简化为完全随机抽题（移除按性质/题型/难度筛选规则）；M02 模块名由"题库与题目性质"简化为"题库管理"；AutoRule DTO 简化为 totalQuestions + totalScore |
 | 2026-06-04 | **v2.0.0** | **重大重写**：① 表数从 5 张减为 **4 张**（**删除 `answer_statistics` 表**，统计功能由 `question.use` / `question.correct` 字段承载）；② 字段严格按用户最新规范裁剪：移除审计字段 `created_at/updated_at`、乐观锁 `version`、扩展字段 `admin_subtype/email/display_name/difficulty/options/analysis/creator_id/description/duration_minutes/assembly_mode/total_score/submit_time/duration_seconds/score.status`；③ 枚举命名 **全局改为小写/CamelCase**（`student` / `SingleChoice` / `draft`），同步删除 `true_false` → `Judge`；④ 文档结构升级为 **Java ↔ SQLite 双向映射表** 格式；⑤ 新增 **§5 枚举定义**、**§7 业务矩阵设计**、**§8 数据流转图**、**§9 字段命名映射约定** 四大章节；⑥ 同步在 [01-Global-Standards.md §4.1.1](file:///d:/GDUT-OOP_20260601/wiki/01-Global-Standards.md) 声明放弃 J6 / §5 硬约束的例外 |
-| 2026-06-04 | **v3.0.0** | **基于实际实现全面校准**：① 主键/外键 Java 类型 `Long` → `Integer`（与 SQLite INTEGER + `columnDefinition` 一致）；② 布尔字段 `Boolean` → `Integer`（`ddl-auto=validate` 下 `Boolean` 映射 `TINYINT` 与 DDL `INTEGER` 不一致）；③ 时间字段 `LocalDateTime` → `String`（Hibernate 社区方言类型推断差异）；④ Score 外键映射 `@JoinColumn` → `@Column`（4 表独立设计，物理 FK 由 DDL 承载）；⑤ 新增 §1.4 类型校准说明、§13 实现状态追踪；⑥ 同步更新 §10 M4/M9 约束、§10.1 实体示例、§7.4 状态判定代码 |
+| 2026-06-06 | **v4.0.0** | **Wiki 系统性校准**：① 新增 §10.2 开发问题与解决方案（记录 5 个典型问题与处置方案）；② 校准 Data/img/ 目录状态 |
 
 ---
 
 ## 13. 实现状态追踪（v3.0.0 新增）
 
-> 本节追踪各层数据相关代码的实际实现状态，与 Wiki 文档定义对照。更新日期：2026-06-04。
+> 本节追踪各层数据相关代码的实际实现状态，与 Wiki 文档定义对照。更新日期：2026-06-06。
 
 ### 13.1 后端数据层实现状态
 
@@ -948,6 +1004,6 @@ public class Score {
 | `application.yaml` | ✅ 已实现 | 生产配置，含 PRAGMA / HikariCP / JPA validate |
 | `application-test.yaml` | ✅ 已实现 | 测试 profile，排除 DataJdbc 自动配置 |
 | `Data/English.sqlite` | ✅ 已存在 | 生产数据库文件 |
-| `Data/img/` | ❌ 未创建 | 题目图片存储目录尚未建立 |
+| `Data/img/` | ✅ 已存在 | 含示例图片（4.png） |
 | 根级 `.gitignore` | ❌ 未创建 | 仅有 `backend/.gitignore` |
 | Docker 配置 | ❌ 未创建 | — |

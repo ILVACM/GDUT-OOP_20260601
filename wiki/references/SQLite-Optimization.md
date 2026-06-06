@@ -355,3 +355,13 @@ ANALYZE question;
 - 全局规范：[01-Global-Standards.md §7](file:///d:/GDUT-OOP_20260601/wiki/01-Global-Standards.md#7-sqlite-特殊规范概要)
 - 数据定义：[02-Data-Dictionary.md](file:///d:/GDUT-OOP_20260601/wiki/02-Data-Dictionary.md)
 - 模块索引：[00-INDEX.md §5](file:///d:/GDUT-OOP_20260601/wiki/00-INDEX.md#5-模块索引)
+
+---
+
+## 14. 版本与变更记录
+
+| 日期 | 版本 | 变更说明 |
+|---|---|---|
+| 2026-06-03 | v1.0.0 | 初始版本，记录 SQLite 与 MySQL/PG 差异、application.yaml 配置、PRAGMA 设置、并发写入陷阱、JSON 处理、日期时间、备份策略、.gitignore、性能监控、常见错误 |
+| 2026-06-04 | v1.1.0 | 补充测试环境配置对比表（生产 vs 测试）、globally_quoted_identifiers 说明、DataJdbcRepositoriesAutoConfiguration 排除说明 |
+| 2026-06-06 | **v2.0.0** | **Wiki 系统性校准**：① 确认所有 PRAGMA 配置与 application.yaml 实际值一致（foreign_keys=ON, journal_mode=WAL, synchronous=NORMAL, busy_timeout=5000, temp_store=MEMORY）；② 新增版本记录 |

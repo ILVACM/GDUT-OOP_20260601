@@ -159,7 +159,7 @@ public Result<Void> deleteUser(@PathVariable Long id) { ... }
 
 ---
 
-## 9. 实现状态（更新日期：2026-06-04）
+## 9. 实现状态（更新日期：2026-06-06）
 
 > 本节追踪该模块各层代码的实际实现状态。
 
@@ -170,7 +170,7 @@ public Result<Void> deleteUser(@PathVariable Long id) { ... }
 | Repository | ✅ 已实现 | findByName / existsByName / findByTypeAndStatus / findByType |
 | Controller | ✅ 已实现 | 11 个端点（register/login/logout/me/password/users CRUD/batch） |
 | Service | ✅ 已实现 | register/login/getCurrentUser/changePassword/listUsers/createUser/updateUser/updateUserStatus/deleteUser/batchDeleteUsers |
-| DTO | ✅ 已实现 | LoginReq/Resp, RegisterReq, UserVO, ChangePasswordReq, UserStatusReq, BatchDeleteReq |
+| DTO | ✅ 已实现 | 7 个 DTO：LoginReq, LoginResp, RegisterReq, ChangePasswordReq, UserVO, UserStatusReq, BatchDeleteReq |
 
 ---
 
@@ -181,3 +181,14 @@ public Result<Void> deleteUser(@PathVariable Long id) { ... }
 - 业务矩阵：[02-Data-Dictionary.md §7.1 用户管理](file:///d:/GDUT-OOP_20260601/wiki/02-Data-Dictionary.md#71-用户管理m01)
 - 全局规范：[01-Global-Standards.md](file:///d:/GDUT-OOP_20260601/wiki/01-Global-Standards.md)
 - 模块索引：[00-INDEX.md §5](file:///d:/GDUT-OOP_20260601/wiki/00-INDEX.md#5-模块索引)
+
+---
+
+## 11. 版本与变更记录
+
+| 日期 | 版本 | 变更说明 |
+|---|---|---|
+| 2026-06-03 | v1.0.0 | 初始版本，定义用户认证模块业务场景、角色权限矩阵、DTO 设计、API 接口、JWT 规范、密码安全、业务规则 |
+| 2026-06-04 | v1.1.0 | 配合 v2.0.0 数据字典重写：枚举改为小写（student/teacher/admin），删除 admin_subtype，简化字段命名 |
+| 2026-06-05 | v2.0.0 | 后端全链路完成校准：标注所有层级为已实现，新增 §9 实现状态追踪 |
+| 2026-06-06 | **v3.0.0** | **Wiki 系统性校准**：① 精确 DTO 计数（7 个）；② 更新日期为 2026-06-06 |

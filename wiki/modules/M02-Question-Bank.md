@@ -215,7 +215,7 @@ public Answer parseAnswer(String json, QuestionType type) {
 
 ---
 
-## 12. 实现状态（更新日期：2026-06-04）
+## 12. 实现状态（更新日期：2026-06-06）
 
 > 本节追踪该模块各层代码的实际实现状态。
 
@@ -226,7 +226,7 @@ public Answer parseAnswer(String json, QuestionType type) {
 | Repository | ✅ 已实现 | findByType / searchByKeyword（分页）/ incrementUse / incrementCorrect |
 | Controller | ✅ 已实现 | 8 个端点（random/create/batch/getById/update/delete/list/batchDelete） |
 | Service | ✅ 已实现 | create/batchCreate/findById/search/update/delete/getRandomQuestion |
-| DTO | ✅ 已实现 | QuestionCreateReq/UpdateReq/QueryReq/VO, BatchImportResult, QuestionPreviewVO, Answer 多态（5 种） |
+| DTO | ✅ 已实现 | 12 个 DTO：QuestionCreateReq, QuestionUpdateReq, QuestionQueryReq, QuestionVO, QuestionPreviewVO, BatchImportResult, Answer（多态基类）, SingleChoiceAnswer, MultipleChoiceAnswer, JudgeAnswer, FillAnswer, EssayAnswer |
 
 ---
 
@@ -240,3 +240,14 @@ public Answer parseAnswer(String json, QuestionType type) {
 - 业务矩阵：[02-Data-Dictionary.md §7.2 题库管理](file:///d:/GDUT-OOP_20260601/wiki/02-Data-Dictionary.md#72-题库管理m02)
 - 全局规范：[01-Global-Standards.md](file:///d:/GDUT-OOP_20260601/wiki/01-Global-Standards.md)
 - 后续模块：[M03-Exam-Assembly.md](file:///d:/GDUT-OOP_20260601/wiki/modules/M03-Exam-Assembly.md)
+
+---
+
+## 14. 版本与变更记录
+
+| 日期 | 版本 | 变更说明 |
+|---|---|---|
+| 2026-06-03 | v1.0.0 | 初始版本，定义题库模块业务场景、题目类型枚举、答案 JSON 扩展规范、img 路径规则、题内统计自维护、DTO 设计、API 接口、业务规则 |
+| 2026-06-04 | v1.1.0 | 配合 v2.0.0 数据字典重写：题型枚举改为 CamelCase（SingleChoice/MultipleChoice/Judge/Fill/Essay），删除 difficulty/creator_id 等字段 |
+| 2026-06-05 | v2.0.0 | 后端全链路完成校准：标注所有层级为已实现，新增 §12 实现状态追踪 |
+| 2026-06-06 | **v3.0.0** | **Wiki 系统性校准**：① 精确 DTO 计数（12 个，补全 EssayAnswer）；② 更新日期为 2026-06-06 |

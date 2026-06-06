@@ -390,7 +390,7 @@ public ExamStatus resolveCurrentStatus(Exam exam, LocalDateTime now) {
 
 ---
 
-## 10. 实现状态（更新日期：2026-06-04）
+## 10. 实现状态（更新日期：2026-06-06）
 
 > 本节追踪该模块各层代码的实际实现状态。
 
@@ -399,9 +399,9 @@ public ExamStatus resolveCurrentStatus(Exam exam, LocalDateTime now) {
 | Entity | ✅ 已实现 | 字段与 02-Data-Dictionary.md 完全一致 |
 | Enum | ✅ 已实现 | ExamStatus |
 | Repository | ✅ 已实现 | findByStatus / findByTimeWindow / findByStatusNot |
-| Controller | ✅ 已实现 | 10 个端点（manual/auto/available/getById/preview/update/publish/withdraw/delete/list） |
+| Controller | ✅ 已实现 | 10 个端点（manual/auto/available/getByIdForStudent/update/publish/withdraw/delete/list） |
 | Service | ✅ 已实现 | createManualExam/createAutoExam/listAvailableExams/getExamById/getExamForStudent/updateExam/publishExam/withdrawExam/deleteExam/listExams |
-| DTO | ✅ 已实现 | ExamCreateManualReq/AutoReq, ExamVO/ForStudentVO, ExamQuestionItemReq/VO/ForStudentVO, QuestionSum/Item, AutoRule |
+| DTO | ✅ 已实现 | 10 个 DTO：ExamCreateManualReq, ExamCreateAutoReq, AutoRule, ExamVO, ExamForStudentVO, ExamQuestionVO, ExamQuestionForStudentVO, ExamQuestionItemReq, QuestionSum, QuestionSumItem |
 
 ---
 
@@ -416,3 +416,14 @@ public ExamStatus resolveCurrentStatus(Exam exam, LocalDateTime now) {
 - 题库模块：[M02-Question-Bank.md](file:///d:/GDUT-OOP_20260601/wiki/modules/M02-Question-Bank.md)
 - 答题 / 判分：[M04-Score-Statistics.md §3 答题提交](file:///d:/GDUT-OOP_20260601/wiki/modules/M04-Score-Statistics.md)
 - 全局规范：[01-Global-Standards.md](file:///d:/GDUT-OOP_20260601/wiki/01-Global-Standards.md)
+
+---
+
+## 12. 版本与变更记录
+
+| 日期 | 版本 | 变更说明 |
+|---|---|---|
+| 2026-06-03 | v1.0.0 | 初始版本，定义考试模块业务场景、状态机（4 态）、手动/自动组卷模式、question_sum 快照、DTO 设计、API 接口、业务规则 |
+| 2026-06-04 | v1.1.0 | 配合 v2.0.0 数据字典重写：状态机枚举改为小写（draft/publish/running/done），删除 creator_id/description/duration_minutes 等字段，question_sum 简化为轻量快照 |
+| 2026-06-05 | v2.0.0 | 后端全链路完成校准：标注所有层级为已实现，新增 §10 实现状态追踪 |
+| 2026-06-06 | **v3.0.0** | **Wiki 系统性校准**：① 精确 DTO 计数（10 个）；② 精确端点说明；③ 更新日期为 2026-06-06 |

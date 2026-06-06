@@ -295,33 +295,33 @@ com.cps.backend
 │   │   ├── service/        # UserService                 ← ✅ 已实现
 │   │   ├── repository/     # UserRepository              ← ✅ 已实现
 │   │   ├── entity/         # User                        ← ✅ 已实现
-│   │   ├── dto/            # LoginReq/Resp, RegisterReq, UserVO, ChangePasswordReq, UserStatusReq, BatchDeleteReq  ← ✅ 已实现
+│   │   ├── dto/            # 7 个 DTO（LoginReq/Resp, RegisterReq, UserVO, ChangePasswordReq, UserStatusReq, BatchDeleteReq）  ← ✅ 已实现
 │   │   └── enums/          # UserType                    ← ✅ 已实现
 │   ├── M02questionbank/
 │   │   ├── controller/     # QuestionController          ← ✅ 已实现
 │   │   ├── service/        # QuestionService             ← ✅ 已实现
 │   │   ├── repository/     # QuestionRepository          ← ✅ 已实现
 │   │   ├── entity/         # Question                    ← ✅ 已实现
-│   │   ├── dto/            # QuestionCreateReq/UpdateReq/QueryReq/VO, BatchImportResult, QuestionPreviewVO, Answer 多态（SingleChoice/MultipleChoice/Judge/Fill/EssayAnswer）  ← ✅ 已实现
+│   │   ├── dto/            # 12 个 DTO（QuestionCreateReq/UpdateReq/QueryReq/VO, BatchImportResult, QuestionPreviewVO, Answer 多态 5 种+EssayAnswer）  ← ✅ 已实现
 │   │   └── enums/          # QuestionType                ← ✅ 已实现
 │   ├── M03examassembly/
 │   │   ├── controller/     # ExamController              ← ✅ 已实现
 │   │   ├── service/        # ExamService                 ← ✅ 已实现
 │   │   ├── repository/     # ExamRepository              ← ✅ 已实现
 │   │   ├── entity/         # Exam                        ← ✅ 已实现
-│   │   ├── dto/            # ExamCreateManualReq/AutoReq, ExamVO/ForStudentVO, ExamQuestionItemReq/VO/ForStudentVO, QuestionSum/Item, AutoRule  ← ✅ 已实现
+│   │   ├── dto/            # 10 个 DTO（ExamCreateManualReq/AutoReq, ExamVO/ForStudentVO, ExamQuestionVO/ForStudentVO/ItemReq, QuestionSum/Item, AutoRule）  ← ✅ 已实现
 │   │   └── enums/          # ExamStatus                  ← ✅ 已实现
 │   └── M04scorestatistics/
 │       ├── controller/     # ScoreController, DraftController  ← ✅ 已实现
 │       ├── service/        # ScoreService, DraftCacheService   ← ✅ 已实现
 │       ├── repository/     # ScoreRepository             ← ✅ 已实现
 │       ├── entity/         # Score                       ← ✅ 已实现
-│       ├── dto/            # ExamSubmitReq, AnswerItem, ScoreVO/Detail/ListVO, DetailItem/VO, MistakeItemVO, EssayGradeReq, ExamStatisticsVO, QuestionStatisticsVO, UserExamHistoryVO, Summary  ← ✅ 已实现
+│       ├── dto/            # 14 个 DTO（ExamSubmitReq, EssayGradeReq, AnswerItem, ScoreVO/ListVO/Detail, DetailItem/VO, Summary, UserExamHistoryVO, MistakeItemVO, ExamStatisticsVO, QuestionStatisticsVO）  ← ✅ 已实现
 │       └── enums/          # （无独立枚举，复用其他模块）     ← ✅
 └── BackendApplication.java  ← ✅ 已实现
 ```
 
-> **当前实现状态**（2026-06-05）：后端全链路已完成 ✅——所有层（Controller/Service/DTO/Repository/Entity/Enum）均已实现，共 73 个单元测试全部通过。
+> **当前实现状态**（2026-06-06）：后端全链路已完成 ✅——共 **71 个 Java 文件**、**41 个 Controller 端点**、**43 个 DTO/VO 类**、**73 个单元测试全部通过**（详见 [00-INDEX.md §9 测试结果](file:///d:/GDUT-OOP_20260601/wiki/00-INDEX.md#9-测试结果)）。
 
 ### 6.2 分层职责
 
@@ -452,3 +452,14 @@ SQLite 在 JPA 环境下有若干特殊行为，详细避坑指南见 [reference
 ## 10. 与 SOP.md 关系
 
 项目内另存有 [temp/在线学习系统-全栈开发工作流 (SOP).md](file:///d:/GDUT-OOP_20260601/temp/在线学习系统-全栈开发工作流%20(SOP).md) 描述了阶段性开发工作流（数据设计→基础设施→后端→前端→部署）。该文件聚焦"何时做、按何顺序做"，本文件聚焦"做什么、怎么做、不能做什么"，两者互补不冲突。
+
+---
+
+## 11. 版本与变更记录
+
+| 日期 | 版本 | 变更说明 |
+|---|---|---|
+| 2026-06-03 | v1.0.0 | 初始版本，定义 API 契约、全局异常处理、JPA 规范、代码分层、前端规范、SQLite 特殊规范 |
+| 2026-06-04 | v1.1.0 | 新增 §5.1.1 已知例外（放弃 J6 乐观锁硬约束）；新增 Score 外键映射例外说明 |
+| 2026-06-05 | v2.0.0 | 配合后端全链路完成校准：更新 §6.1 分层目录状态标注为已实现 |
+| 2026-06-06 | **v3.0.0** | **Wiki 系统性校准**：① 精确 DTO 计数（M01:7, M02:12, M03:10, M04:14）；② 更新实现状态为精确数据（71 文件、41 端点、43 DTO、73 测试） |

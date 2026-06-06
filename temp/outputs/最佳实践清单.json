@@ -1,0 +1,216 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-06-05",
+  "projectName": "在线学习系统（English Online Learning System）",
+  "techStack": {
+    "backend": {
+      "framework": "Spring Boot",
+      "version": "4.0.6",
+      "orm": "Spring Data JPA + Hibernate 7.2.12.Final",
+      "language": "JDK 21",
+      "database": "SQLite",
+      "buildTool": "Maven",
+      "features": ["Lombok", "JWT (jjwt 0.12.6)", "BCrypt"]
+    },
+    "frontend": {
+      "framework": "Vue 3",
+      "api": "Composition API + <script setup>",
+      "buildTool": "Vite",
+      "router": "Vue Router 5",
+      "stateManagement": "Pinia 3",
+      "uiLibrary": "Element Plus",
+      "http": "Axios",
+      "language": "TypeScript 6"
+    }
+  },
+  "bestPractices": [
+    {
+      "id": "BP-01",
+      "category": "Prompt Design",
+      "title": "渐进式上下文加载协议",
+      "description": "Agent 必须先读取 3 个全局基座文件（00-INDEX/01-Standards/02-Dictionary），再按需加载模块文档。严禁一次性加载整个 wiki/ 目录。",
+      "impact": "防止上下文溢出和注意力稀释",
+      "evidence": ".trae/rules/开发指导.md 阶段一+阶段二"
+    },
+    {
+      "id": "BP-02",
+      "category": "Prompt Design",
+      "title": "Think Aloud 思考外化",
+      "description": "Agent 必须在生成代码前使用 <context_loading> 标签外化加载策略和核心约束提取。",
+      "impact": "让用户确认 Agent 没有'盲目生成'",
+      "evidence": ".trae/rules/开发指导.md 执行动作与思考外化"
+    },
+    {
+      "id": "BP-03",
+      "category": "Prompt Design",
+      "title": "文档驱动开发",
+      "description": "所有代码生成必须 100% 遵循 wiki/ 知识库规范，禁止凭直觉自由发挥。",
+      "impact": "确保代码与文档 100% 一致",
+      "evidence": "wiki/00-INDEX.md §7 AI 协作边界"
+    },
+    {
+      "id": "BP-04",
+      "category": "Architecture",
+      "title": "垂直业务分割",
+      "description": "按 M01/M02/M03/M04 独立包结构组织代码，跨模块依赖仅通过 Service 接口调用。",
+      "impact": "确保模块间低耦合高内聚",
+      "evidence": "project_memory.md 工程惯例"
+    },
+    {
+      "id": "BP-05",
+      "category": "Architecture",
+      "title": "Entity 与 DTO 隔离",
+      "description": "禁止将 JPA Entity 直接作为 API 响应，必须在 Service 层转换为 DTO/VO。",
+      "impact": "防止 JSON 循环引用和敏感字段泄露",
+      "evidence": "wiki/01-Global-Standards.md §4.1 J1"
+    },
+    {
+      "id": "BP-06",
+      "category": "Performance",
+      "title": "防 N+1 查询",
+      "description": "批量数据加载必须使用 findAllById，禁止在循环中调用 Repository 查询。",
+      "impact": "防止性能雪崩",
+      "evidence": "wiki/01-Global-Standards.md §4.1 J2"
+    },
+    {
+      "id": "BP-07",
+      "category": "Quality",
+      "title": "事务控制规范",
+      "description": "所有写操作必须加 @Transactional(rollbackFor = Exception.class)。",
+      "impact": "确保多表写入的事务一致性",
+      "evidence": "wiki/01-Global-Standards.md §6.3"
+    },
+    {
+      "id": "BP-08",
+      "category": "Quality",
+      "title": "统一 API 响应契约",
+      "description": "所有 Controller 方法必须返回 Result<T>，禁止直接返回 Entity/Map/List。",
+      "impact": "确保前后端契约一致性",
+      "evidence": "wiki/01-Global-Standards.md §3.1"
+    },
+    {
+      "id": "BP-09",
+      "category": "Quality",
+      "title": "测试驱动验证",
+      "description": "每个模块完成后必须通过单元测试验证（本项目 73 个测试全部通过）。",
+      "impact": "确保代码正确性和可维护性",
+      "evidence": "backend/src/test/"
+    },
+    {
+      "id": "BP-10",
+      "category": "Database",
+      "title": "SQLite 特殊适配",
+      "description": "布尔字段使用 Integer(0/1)，时间字段使用 String(ISO 8601)，主键使用 Integer。",
+      "impact": "避免 ddl-auto=validate 模式下的类型推断差异",
+      "evidence": "wiki/02-Data-Dictionary.md §1.4"
+    },
+    {
+      "id": "BP-11",
+      "category": "Database",
+      "title": "PRAGMA 必开配置",
+      "description": "PRAGMA foreign_keys=ON、journal_mode=WAL、busy_timeout=5000。",
+      "impact": "确保外键约束生效、并发读性能、写锁冲突处理",
+      "evidence": "wiki/references/SQLite-Optimization.md §3"
+    },
+    {
+      "id": "BP-12",
+      "category": "Workflow",
+      "title": "先文档后代码",
+      "description": "任何对架构/字段/接口的修改必须先更新 wiki，再修改代码。",
+      "impact": "确保文档与代码同步",
+      "evidence": "wiki/01-Global-Standards.md §9.2"
+    },
+    {
+      "id": "BP-13",
+      "category": "Workflow",
+      "title": "Spec 驱动开发",
+      "description": "使用 .trae/specs/ 中的 spec.md + tasks.md + checklist.md 三件套定义任务。",
+      "impact": "提供结构化的任务定义和验收标准",
+      "evidence": ".trae/specs/*/spec.md"
+    },
+    {
+      "id": "BP-14",
+      "category": "Security",
+      "title": "JWT 认证拦截",
+      "description": "使用 JwtAuthenticationInterceptor + @RequireRole 注解实现角色权限控制。",
+      "impact": "确保 API 访问安全",
+      "evidence": "wiki/modules/M01-User-Auth.md §5"
+    },
+    {
+      "id": "BP-15",
+      "category": "Security",
+      "title": "密码 BCrypt 加密",
+      "description": "DB 严禁明文密码，使用 BCryptPasswordEncoder 加密。兼容已有明文密码的自动迁移。",
+      "impact": "防止密码泄露",
+      "evidence": "wiki/modules/M01-User-Auth.md §6"
+    }
+  ],
+  "redLines": [
+    {
+      "id": "RL-01",
+      "rule": "禁止脱离文档造轮子",
+      "consequence": "违反 API 契约"
+    },
+    {
+      "id": "RL-02",
+      "rule": "禁止 Entity 裸奔",
+      "consequence": "JSON 循环引用 / 敏感字段泄露"
+    },
+    {
+      "id": "RL-03",
+      "rule": "禁止 N+1 查询",
+      "consequence": "性能雪崩"
+    },
+    {
+      "id": "RL-04",
+      "rule": "禁止破坏数据字典",
+      "consequence": "文档与代码失同步"
+    },
+    {
+      "id": "RL-05",
+      "rule": "禁止上下文贪吃",
+      "consequence": "上下文溢出、注意力稀释"
+    }
+  ],
+  "moduleSummary": [
+    {
+      "moduleId": "M01",
+      "name": "用户认证与权限管理",
+      "endpoints": 11,
+      "services": ["register", "login", "getCurrentUser", "changePassword", "listUsers", "createUser", "updateUser", "updateUserStatus", "deleteUser", "batchDeleteUsers"],
+      "tests": 18
+    },
+    {
+      "moduleId": "M02",
+      "name": "题库管理",
+      "endpoints": 8,
+      "services": ["create", "batchCreate", "findById", "search", "update", "delete", "getRandomQuestion"],
+      "tests": 15
+    },
+    {
+      "moduleId": "M03",
+      "name": "考试与组卷",
+      "endpoints": 10,
+      "services": ["createManualExam", "createAutoExam", "listAvailableExams", "getExamById", "getExamForStudent", "updateExam", "publishExam", "withdrawExam", "deleteExam", "listExams"],
+      "tests": 22
+    },
+    {
+      "moduleId": "M04",
+      "name": "分数与统计",
+      "endpoints": 11,
+      "services": ["submitExam", "gradeEssay", "getMyScores", "getMyMistakes", "findById", "getExamScores", "getExamStatistics", "getQuestionStatisticsPaginated", "getQuestionStatisticById", "saveDraft", "loadDraft"],
+      "tests": 18
+    }
+  ],
+  "metrics": {
+    "totalEndpoints": 40,
+    "totalTests": 73,
+    "totalTestsPassed": 73,
+    "totalModules": 4,
+    "totalWikiDocuments": 9,
+    "totalSpecDocuments": 4,
+    "totalDDLScripts": 8,
+    "totalRedLines": 5,
+    "totalBestPractices": 15
+  }
+}

@@ -389,7 +389,7 @@ int incrementCorrect(@Param("id") Integer id);
 
 ---
 
-## 11. 实现状态（更新日期：2026-06-04）
+## 11. 实现状态（更新日期：2026-06-06）
 
 > 本节追踪该模块各层代码的实际实现状态。
 
@@ -398,7 +398,7 @@ int incrementCorrect(@Param("id") Integer id);
 | Entity | ✅ 已实现 | 字段与 02-Data-Dictionary.md 完全一致 |
 | Enum | ✅ 已实现 | （无独立枚举，复用 M02/M03） |
 | Repository | ✅ 已实现 | findByUserAndExam / findByUser / findByExam / upsertScore（原生 UPSERT） |
-| Controller | ✅ 已实现 | ScoreController（9 端点）+ DraftController（2 端点）|
+| Controller | ✅ 已实现 | ScoreController（9 端点：submit/grade-essay/my-scores/my-mistakes/score-detail/exam-scores/exam-stats/question-stats/question-stat-detail）+ DraftController（2 端点：save-draft/load-draft）|
 | Service | ✅ 已实现 | ScoreService（submitExam/gradeEssay/getMyScores/getMyMistakes/findById/getExamScores/getExamStatistics/getQuestionStatisticsPaginated/getQuestionStatisticById）+ DraftCacheService（saveDraft/loadDraft）|
 | DTO | ✅ 已实现 | ExamSubmitReq, AnswerItem, ScoreVO/Detail/ListVO, DetailItem/VO, MistakeItemVO, EssayGradeReq, ExamStatisticsVO, QuestionStatisticsVO, UserExamHistoryVO, Summary |
 
@@ -414,3 +414,14 @@ int incrementCorrect(@Param("id") Integer id);
 - 考试模块：[M03-Exam-Assembly.md](file:///d:/GDUT-OOP_20260601/wiki/modules/M03-Exam-Assembly.md)
 - 题库模块：[M02-Question-Bank.md](file:///d:/GDUT-OOP_20260601/wiki/modules/M02-Question-Bank.md)
 - 全局规范：[01-Global-Standards.md](file:///d:/GDUT-OOP_20260601/wiki/01-Global-Standards.md)
+
+---
+
+## 13. 版本与变更记录
+
+| 日期 | 版本 | 变更说明 |
+|---|---|---|
+| 2026-06-03 | v1.0.0 | 初始版本，定义分数模块业务场景、答题提交与判分流程、教师评卷、DTO 设计、API 接口、业务规则 |
+| 2026-06-04 | v1.1.0 | 配合 v2.0.0 数据字典重写：删除 answer_statistics 表，统计功能由 question.use/correct 承载，简化字段命名 |
+| 2026-06-05 | v2.0.0 | 后端全链路完成校准：标注所有层级为已实现，新增 §11 实现状态追踪 |
+| 2026-06-06 | **v3.0.0** | **Wiki 系统性校准**：① 精确 Controller 端点计数（ScoreController: 9 + DraftController: 2）；② 更新日期为 2026-06-06 |

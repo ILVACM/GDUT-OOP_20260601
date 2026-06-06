@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" font-family="Microsoft YaHei, sans-serif">
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+    <linearGradient id="phase1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8f5e9;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#c8e6c9;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="phase2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e3f2fd;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#bbdefb;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="phase3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fff3e0;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#ffe0b2;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="phase4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#e1bee7;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="phase5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fce4ec;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f8bbd0;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="user" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fafafa;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="agent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#b2ebf2;stop-opacity:1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Title -->
+  <text x="600" y="35" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">本地 Agent 全流程辅助开发 — 工作流拓扑图</text>
+
+  <!-- User Node -->
+  <rect x="50" y="70" width="160" height="60" rx="10" fill="url(#user)" stroke="#666" stroke-width="2"/>
+  <text x="130" y="105" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">用户（需求提出者）</text>
+
+  <!-- Agent Node -->
+  <rect x="990" y="70" width="160" height="60" rx="10" fill="url(#agent)" stroke="#0097a7" stroke-width="2"/>
+  <text x="1070" y="105" text-anchor="middle" font-size="14" font-weight="bold" fill="#006064">本地 Agent</text>
+
+  <!-- Bidirectional arrow between User and Agent -->
+  <line x1="210" y1="100" x2="990" y2="100" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="990" y1="115" x2="210" y2="115" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="600" y="95" text-anchor="middle" font-size="11" fill="#555">需求导入 / 方案评审</text>
+  <text x="600" y="130" text-anchor="middle" font-size="11" fill="#555">成果验收 / 反馈修复</text>
+
+  <!-- Phase 1: 顶层设计 -->
+  <rect x="280" y="170" width="640" height="140" rx="12" fill="url(#phase1)" stroke="#4caf50" stroke-width="2"/>
+  <text x="600" y="195" text-anchor="middle" font-size="16" font-weight="bold" fill="#2e7d32">阶段一：顶层设计（谋定而后动）</text>
+
+  <rect x="300" y="210" width="280" height="85" rx="8" fill="#fff" stroke="#4caf50" stroke-width="1"/>
+  <text x="440" y="235" text-anchor="middle" font-size="13" font-weight="bold" fill="#2e7d32">1. 数据结构设计</text>
+  <text x="440" y="255" text-anchor="middle" font-size="11" fill="#555">ER 图 → DDL → scripts/*.sql</text>
+  <text x="440" y="275" text-anchor="middle" font-size="11" fill="#555">交付：4 张核心表建表语句</text>
+  <text x="440" y="290" text-anchor="middle" font-size="10" fill="#888">人机协同</text>
+
+  <rect x="620" y="210" width="280" height="85" rx="8" fill="#fff" stroke="#4caf50" stroke-width="1"/>
+  <text x="760" y="235" text-anchor="middle" font-size="13" font-weight="bold" fill="#2e7d32">2. API 契约设计</text>
+  <text x="760" y="255" text-anchor="middle" font-size="11" fill="#555">RESTful 规范 → Result&lt;T&gt;</text>
+  <text x="760" y="275" text-anchor="middle" font-size="11" fill="#555">交付：wiki/ + .trae/specs/</text>
+  <text x="760" y="290" text-anchor="middle" font-size="10" fill="#888">人机协同</text>
+
+  <!-- Phase 2: 基础设施 -->
+  <rect x="280" y="330" width="640" height="140" rx="12" fill="url(#phase2)" stroke="#2196f3" stroke-width="2"/>
+  <text x="600" y="355" text-anchor="middle" font-size="16" font-weight="bold" fill="#1565c0">阶段二：基础设施搭建</text>
+
+  <rect x="300" y="370" width="280" height="85" rx="8" fill="#fff" stroke="#2196f3" stroke-width="1"/>
+  <text x="440" y="395" text-anchor="middle" font-size="13" font-weight="bold" fill="#1565c0">3. 数据库初始化</text>
+  <text x="440" y="415" text-anchor="middle" font-size="11" fill="#555">PRAGMA 配置 + DDL 执行</text>
+  <text x="440" y="435" text-anchor="middle" font-size="11" fill="#555">交付：application.yaml</text>
+  <text x="440" y="450" text-anchor="middle" font-size="10" fill="#888">人机协同</text>
+
+  <rect x="620" y="370" width="280" height="85" rx="8" fill="#fff" stroke="#2196f3" stroke-width="1"/>
+  <text x="760" y="395" text-anchor="middle" font-size="13" font-weight="bold" fill="#1565c0">4. 项目初始化</text>
+  <text x="760" y="415" text-anchor="middle" font-size="11" fill="#555">pom.xml + package.json</text>
+  <text x="760" y="435" text-anchor="middle" font-size="11" fill="#555">交付：Result&lt;T&gt; + 异常处理</text>
+  <text x="760" y="450" text-anchor="middle" font-size="10" fill="#888">人机协同</text>
+
+  <!-- Phase 3: 后端核心开发 -->
+  <rect x="280" y="490" width="640" height="200" rx="12" fill="url(#phase3)" stroke="#ff9800" stroke-width="2"/>
+  <text x="600" y="515" text-anchor="middle" font-size="16" font-weight="bold" fill="#e65100">阶段三：后端核心开发（Agent 自治）</text>
+
+  <rect x="300" y="530" width="150" height="70" rx="8" fill="#fff" stroke="#ff9800" stroke-width="1"/>
+  <text x="375" y="555" text-anchor="middle" font-size="12" font-weight="bold" fill="#e65100">5.1 数据层</text>
+  <text x="375" y="575" text-anchor="middle" font-size="10" fill="#555">Entity+Enum+Repository</text>
+  <text x="375" y="590" text-anchor="middle" font-size="10" fill="#888">Agent 自治</text>
+
+  <rect x="465" y="530" width="150" height="70" rx="8" fill="#fff" stroke="#ff9800" stroke-width="1"/>
+  <text x="540" y="555" text-anchor="middle" font-size="12" font-weight="bold" fill="#e65100">5.2 基础设施</text>
+  <text x="540" y="575" text-anchor="middle" font-size="10" fill="#555">Result+Exception+JWT</text>
+  <text x="540" y="590" text-anchor="middle" font-size="10" fill="#888">Agent 自治</text>
+
+  <rect x="630" y="530" width="150" height="70" rx="8" fill="#fff" stroke="#ff9800" stroke-width="1"/>
+  <text x="705" y="555" text-anchor="middle" font-size="12" font-weight="bold" fill="#e65100">5.3 业务层</text>
+  <text x="705" y="575" text-anchor="middle" font-size="10" fill="#555">Service+DTO 14Req+46Scn</text>
+  <text x="705" y="590" text-anchor="middle" font-size="10" fill="#888">Agent 自治</text>
+
+  <rect x="795" y="530" width="110" height="70" rx="8" fill="#fff" stroke="#ff9800" stroke-width="1"/>
+  <text x="850" y="555" text-anchor="middle" font-size="12" font-weight="bold" fill="#e65100">5.4 接口层</text>
+  <text x="850" y="575" text-anchor="middle" font-size="10" fill="#555">Controller 40端点</text>
+  <text x="850" y="590" text-anchor="middle" font-size="10" fill="#888">Agent 自治</text>
+
+  <rect x="465" y="615" width="270" height="60" rx="8" fill="#fff" stroke="#ff9800" stroke-width="1"/>
+  <text x="600" y="640" text-anchor="middle" font-size="12" font-weight="bold" fill="#e65100">5.5 测试闭环 — 73 个测试全部通过</text>
+  <text x="600" y="660" text-anchor="middle" font-size="10" fill="#888">Agent 自治 + 自动验证</text>
+
+  <!-- Phase 4: 前端开发 -->
+  <rect x="280" y="710" width="640" height="80" rx="12" fill="url(#phase4)" stroke="#9c27b0" stroke-width="2"/>
+  <text x="440" y="740" text-anchor="middle" font-size="14" font-weight="bold" fill="#7b1fa2">阶段四：前端开发与联调</text>
+  <text x="440" y="760" text-anchor="middle" font-size="11" fill="#555">Vue3 + TypeScript + Vite — 14 views + API 封装 + 路由/状态管理</text>
+  <text x="760" y="740" text-anchor="middle" font-size="11" fill="#555">人机协同</text>
+  <text x="760" y="760" text-anchor="middle" font-size="11" fill="#555">+ 端到端联调</text>
+
+  <!-- Phase 5: 交付部署 -->
+  <rect x="280" y="810" width="640" height="80" rx="12" fill="url(#phase5)" stroke="#e91e63" stroke-width="2"/>
+  <text x="440" y="840" text-anchor="middle" font-size="14" font-weight="bold" fill="#ad1457">阶段五：交付与部署</text>
+  <text x="440" y="860" text-anchor="middle" font-size="11" fill="#555">Docker + Nginx 反向代理 + docker-compose.yml</text>
+  <text x="760" y="840" text-anchor="middle" font-size="11" fill="#555">人机协同</text>
+  <text x="760" y="860" text-anchor="middle" font-size="11" fill="#555">（待实现）</text>
+
+  <!-- Flow arrows between phases -->
+  <line x1="600" y1="310" x2="600" y2="330" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="600" y1="470" x2="600" y2="490" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="600" y1="690" x2="600" y2="710" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="600" y1="790" x2="600" y2="810" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- User-Agent to Phase connections -->
+  <line x1="130" y1="130" x2="300" y2="200" stroke="#666" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead)"/>
+  <line x1="1070" y1="130" x2="900" y2="200" stroke="#666" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead)"/>
+
+  <!-- Legend -->
+  <rect x="50" y="710" width="200" height="180" rx="8" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+  <text x="150" y="735" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">图例</text>
+
+  <rect x="65" y="750" width="20" height="15" rx="3" fill="url(#phase1)"/><text x="95" y="763" font-size="10" fill="#333">阶段一：顶层设计</text>
+  <rect x="65" y="770" width="20" height="15" rx="3" fill="url(#phase2)"/><text x="95" y="783" font-size="10" fill="#333">阶段二：基础设施</text>
+  <rect x="65" y="790" width="20" height="15" rx="3" fill="url(#phase3)"/><text x="95" y="803" font-size="10" fill="#333">阶段三：后端开发</text>
+  <rect x="65" y="810" width="20" height="15" rx="3" fill="url(#phase4)"/><text x="95" y="823" font-size="10" fill="#333">阶段四：前端开发</text>
+  <rect x="65" y="830" width="20" height="15" rx="3" fill="url(#phase5)"/><text x="95" y="843" font-size="10" fill="#333">阶段五：交付部署</text>
+  <rect x="65" y="850" width="20" height="15" rx="3" fill="url(#user)"/><text x="95" y="863" font-size="10" fill="#333">用户节点</text>
+  <rect x="65" y="870" width="20" height="15" rx="3" fill="url(#agent)"/><text x="95" y="883" font-size="10" fill="#333">Agent 节点</text>
+</svg>
