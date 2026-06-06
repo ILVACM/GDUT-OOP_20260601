@@ -245,57 +245,96 @@ npm run dev
 
 ## Project Structure
 
-```mermaid
-mindmap
-  root((GDUT-OOP))
-    backend
-      src
-        main
-          java/com/cps/backend
-            common
-              api
-                Result T
-                PageResult T
-              exception
-                BusinessException
-                GlobalExceptionHandler
-              config
-                WebMvcConfig
-              security
-                JwtUtil
-                JwtInterceptor
-                RequireRole
-            modules
-              M01userauth
-                User Auth
-              M02questionbank
-                Question CRUD
-              M03examassembly
-                Exam Lifecycle
-              M04scorestatistics
-                Scoring & Stats
-            BackendApplication
-          resources
-            application.yaml
-        test
-          resources
-            application-test.yaml
-            schema DDL
-      pom.xml
-    frontend
-      Vue 3 Pending
-    Data
-      English.sqlite
-      img Question Images
-    scripts
-      table SQL
-    wiki
-      00-INDEX.md
-      01-Global-Standards.md
-      02-Data-Dictionary.md
-      modules M01-M04
-      references
-    LICENSE
+```
+GDUT-OOP_20260601/
+│
+├── backend/                                      # Spring Boot Backend
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/cps/backend/
+│   │   │   │   ├── common/                       # Shared Infrastructure
+│   │   │   │   │   ├── api/
+│   │   │   │   │   │   ├── Result<T>             # Unified API response wrapper
+│   │   │   │   │   │   └── PageResult<T>         # Pagination wrapper
+│   │   │   │   │   ├── exception/
+│   │   │   │   │   │   ├── BusinessException     # Custom business exception
+│   │   │   │   │   │   └── GlobalExceptionHandler
+│   │   │   │   │   ├── config/
+│   │   │   │   │   │   └── WebMvcConfig          # Interceptor registration
+│   │   │   │   │   └── security/
+│   │   │   │   │       ├── JwtUtil               # JWT token generation/validation
+│   │   │   │   │       ├── JwtInterceptor        # Auth interceptor
+│   │   │   │   │       └── @RequireRole          # Role-based annotation
+│   │   │   │   │
+│   │   │   │   └── modules/                      # Business Modules (Vertical Slice)
+│   │   │   │       ├── M01userauth/              # 👤 User Authentication & Management
+│   │   │   │       │   ├── controller/  UserController
+│   │   │   │       │   ├── service/     UserService
+│   │   │   │       │   ├── repository/  UserRepository
+│   │   │   │       │   ├── entity/      User
+│   │   │   │       │   ├── dto/         7 DTOs (LoginReq, RegisterReq, UserVO...)
+│   │   │   │       │   └── enums/       UserType
+│   │   │   │       │
+│   │   │   │       ├── M02questionbank/          # 📝 Question Bank CRUD
+│   │   │   │       │   ├── controller/  QuestionController
+│   │   │   │       │   ├── service/     QuestionService
+│   │   │   │       │   ├── repository/  QuestionRepository
+│   │   │   │       │   ├── entity/      Question
+│   │   │   │       │   ├── dto/         12 DTOs (incl. polymorphic Answer types)
+│   │   │   │       │   └── enums/       QuestionType
+│   │   │   │       │
+│   │   │   │       ├── M03examassembly/          # 📋 Exam Assembly & Lifecycle
+│   │   │   │       │   ├── controller/  ExamController, DraftController
+│   │   │   │       │   ├── service/     ExamService, DraftCacheService
+│   │   │   │       │   ├── repository/  ExamRepository
+│   │   │   │       │   ├── entity/      Exam
+│   │   │   │       │   ├── dto/         10 DTOs
+│   │   │   │       │   └── enums/       ExamStatus
+│   │   │   │       │
+│   │   │   │       └── M04scorestatistics/       # 📊 Scoring & Statistics
+│   │   │   │           ├── controller/  ScoreController
+│   │   │   │           ├── service/     ScoreService
+│   │   │   │           ├── repository/  ScoreRepository
+│   │   │   │           ├── entity/      Score
+│   │   │   │           └── dto/         14 DTOs
+│   │   │   │
+│   │   │   └── resources/
+│   │   │       └── application.yaml              # Production config (PRAGMA, HikariCP, JPA)
+│   │   │
+│   │   └── test/                                 # 73 Tests ✅ All Passing
+│   │       └── resources/
+│   │           ├── application-test.yaml
+│   │           └── schema/                       # DDL scripts
+│   │
+│   └── pom.xml
+│
+├── frontend/                                     # Vue 3 Frontend (Pending)
+│
+├── Data/
+│   ├── English.sqlite                            # SQLite database file
+│   └── img/                                      # Question images (matched by ID)
+│
+├── scripts/                                      # SQL DDL scripts
+│   ├── table_user.sql
+│   ├── table_question.sql
+│   ├── table_exam.sql
+│   └── table_score.sql
+│
+├── wiki/                                         # Project Documentation
+│   ├── 00-INDEX.md                               # Master index
+│   ├── 00-Course-Guidelines.md                   # Course guidelines archive
+│   ├── 01-Global-Standards.md                    # API contracts, JPA specs
+│   ├── 02-Data-Dictionary.md                     # Database schema
+│   ├── modules/
+│   │   ├── M01-User-Auth.md
+│   │   ├── M02-Question-Bank.md
+│   │   ├── M03-Exam-Assembly.md
+│   │   ├── M04-Score-Statistics.md
+│   │   └── _legacy_course-modules.md
+│   └── references/
+│       └── SQLite-Optimization.md
+│
+└── LICENSE
 ```
 
 ***
@@ -325,10 +364,11 @@ Detailed technical documentation is available in the `wiki/` directory:
       <img src="Data/Vue/logo.png" alt="Author Avatar" width="80" style="border-radius: 50%;" />
     </td>
     <td>
-      <strong>黄泊凯 (Bobo Huang)</strong><br/>
+      <strong>黄泊凯 (Bobo Huang)</strong>
       🎓 广东工业大学 · 计算机学院 · 软件工程专业 · 23级本科生（大三）<br/>
       🔬 师从 <strong>物理信息融合实验室国家地方工程中心（CPS）</strong> · 黄国恒 副教授<br/>
-      📧 <a href="mailto:3347620766@qq.com">3347620766@qq.com</a> &nbsp;|&nbsp; 📱 <code>13600323338</code>
+      📧 <a href="mailto:3347620766@qq.com">3347620766@qq.com</a> &nbsp;|&nbsp; <br/>
+      📱 <code>13600323338</code>
     </td>
   </tr>
 </table>
@@ -346,7 +386,6 @@ First and foremost, sincere gratitude to:
 - **广东工业大学计算机学院** — For providing the academic foundation and curriculum that inspired this project.
 - **物理信息融合实验室国家地方工程中心（CPS）** — For the research environment and resources that made this work possible.
 - **导师 黄国恒 副教授** — For guidance, support, and encouragement throughout the development process.
-- **《面向对象软件设计与建模》课程教学团队** — For the well-designed requirements specification and development guidelines that served as the blueprint for this system.
 
 ### 💌 Why Open Source?
 
