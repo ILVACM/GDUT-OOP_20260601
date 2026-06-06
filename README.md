@@ -5,7 +5,7 @@
 <h1 align="center">Online Learning System / 在线学习系统</h1>
 
 <p align="center">
-  <em>A modern English online learning platform built with Spring Boot 4 and Vue 3</em>
+  <em>English Learning Platform · Built with AI Agent Assistance</em>
 </p>
 
 <p align="center">
@@ -45,11 +45,31 @@
 
 ## Introduction
 
-This is an **English Online Learning System** developed as the final project for the *Object-Oriented Software Design & Modeling* course. The system streamlines the entire teaching workflow — from question bank management, exam assembly, online testing, to score analysis — providing a unified platform for students, teachers, and administrators.
+### 📚 What is This?
 
-In traditional English teaching, instructors face the overhead of maintaining question banks, manually composing exam papers, organizing timed tests, and analyzing student performance. Students, on the other hand, lack convenient tools for online practice and personalized mistake tracking. This system bridges that gap by offering a complete, end-to-end solution.
+An **English Online Learning System** built for the *Object-Oriented Software Design & Modeling* course at Guangdong University of Technology. The system covers the complete teaching workflow:
 
-The system supports **three distinct roles** (Student / Teacher / Admin), each with tailored functionality views and permission boundaries. All data is stored in a structured SQLite database, ensuring historical exams are traceable, question quality is measurable, and performance statistics are actionable.
+> **Question Bank** → **Exam Assembly** → **Online Testing** → **Score Analysis**
+
+Three roles, one platform:
+
+| Role | Core Needs | Solution Provided |
+|------|-----------|-------------------|
+| 🧑‍🎓 Student | Take exams, review mistakes | Online答题, 自动判分, 错题本, 成绩追踪 |
+| 👨‍🏫 Teacher | Maintain questions, assemble exams, grade | 5种题型CRUD, 手动/自动组卷, 多维统计报表 |
+| 🛡️ Admin | Manage users, oversee system | 用户全生命周期管理, 全局数据看板 |
+
+### 🧪 Why This Exists?
+
+> **作业本身不难，但这次想玩点不一样的。**
+
+Beyond the course requirements, this project serves as a **pilot validation of an AI Agent-assisted development workflow**. The core experiment:
+
+> **Given complete domain understanding and thorough system design crafted by a human, how much of the actual coding implementation can a local AI Agent autonomously handle?**
+
+From the first `Entity` class to the last `Service` method, from 73 passing unit tests to wiki documentation — the entire pipeline was executed with a local AI Agent (Trae CN) as the primary code generator, while the human remained the architect and decision-maker.
+
+It's also a practice ground for essential engineering skills: technical documentation, GitHub management, Git version control, and cross-environment deployment.
 
 ***
 
@@ -393,9 +413,7 @@ First and foremost, sincere gratitude to:
 
 This project is primarily a personal milestone — a digital time capsule of what a junior-year student achieved during the final weeks of a semester. The code may have its rough edges, the architecture may not be perfect, and there are certainly better ways to do many things.
 
-But if this repository can serve as even a tiny reference point for future students tackling their own course projects — whether it's the **system architecture design**, the **AI Agent-assisted development workflow**, or simply the courage to try something unconventional — then opening this repository will have been worth it.
-
-Think of it not as a tutorial, but as a proof of concept: *what happens when a student who truly understands their domain hands the keyboard to an AI Agent and says "let's build this together."*
+But if this repository can serve as even a tiny reference point for future students tackling their own course projects — whether it's the **system architecture design**, the **documentation practices**, or simply the courage to try something unconventional — then opening this repository will have been worth it.
 
 ### 🤝 Contributing
 
