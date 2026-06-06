@@ -365,7 +365,7 @@ Detailed technical documentation is available in the `wiki/` directory:
     </td>
     <td>
       <strong>黄泊凯 (BoKai Huang)</strong><br/>
-      🎓 广东工业大学 · 计算机学院 · 软件工程专业 · 23级本科生（大三）
+      🎓 广东工业大学 · 计算机学院 · 软件工程专业 · 23级本科生（大三）<br/>
       🔬 师从 <strong>物理信息融合实验室国家地方工程中心（CPS）</strong> · 黄国恒 副教授<br/>
       📧 <a href="mailto:3347620766@qq.com">3347620766@qq.com</a> &nbsp;|&nbsp; <br/>
       📱 <code>13600323338</code>
