@@ -26,7 +26,7 @@
   </a>
 </p>
 
----
+***
 
 ## Table of Contents
 
@@ -40,7 +40,7 @@
 - [Contributing & Acknowledgements](#-contributing--acknowledgements)
 - [License](#-license)
 
----
+***
 
 ## Introduction
 
@@ -50,17 +50,19 @@ In traditional English teaching, instructors face the overhead of maintaining qu
 
 The system supports **three distinct roles** (Student / Teacher / Admin), each with tailored functionality views and permission boundaries. All data is stored in a structured SQLite database, ensuring historical exams are traceable, question quality is measurable, and performance statistics are actionable.
 
----
+***
 
 ## Features
 
 ### Student Portal
+
 - **Online Exam** — Participate in published exams within the designated time window
 - **Score Review** — View detailed score breakdowns for each exam attempt
 - **Mistake Notebook** — Automatically aggregated wrong questions for targeted review
 - **Personal Stats** — Track individual accuracy rates and learning progress
 
 ### Teacher Portal
+
 - **Question Bank Management** — Full CRUD for questions across 5 types: Single Choice, Multiple Choice, True/False, Fill-in-the-Blank, Essay
 - **Manual Exam Assembly** — Hand-pick questions from the bank and compose custom exams
 - **Automatic Exam Assembly** — Configure rules (question count, type filters, usage-based weighting) and let the system randomly draw questions
@@ -69,65 +71,114 @@ The system supports **three distinct roles** (Student / Teacher / Admin), each w
 - **Multi-dimensional Reports** — Exam pass rates, score distributions, question quality analysis (difficulty identification)
 
 ### Admin Portal
+
 - **User Management** — Create, update, enable/disable, and delete users across all roles; batch operations supported
 - **Global Dashboard** — System-wide statistics and data overview
 - **Full Permissions** — Access to all teacher and student features plus administrative controls
 
----
+***
 
 ## Tech Stack
 
-| Layer | Technology | Version |
-|-------|------------|---------|
-| **Backend Framework** | Spring Boot | 4.0.6 |
-| **Language** | JDK | 21 (Records, Pattern Matching, Virtual Threads) |
-| **ORM** | Spring Data JPA + Hibernate | Community Dialect 7.2.12.Final |
-| **Authentication** | JWT (JSON Web Token) | — |
-| **Code Generator** | Lombok | — |
-| **Database** | SQLite (xerial JDBC driver) | — |
-| **Build Tool** | Maven | 3.9+ |
-| **Frontend Framework** | Vue 3 (Composition API + `<script setup>`) | — |
-| **Frontend Build** | Vite | Latest Stable |
-| **Frontend Router** | Vue Router | 4 |
-| **State Management** | Pinia | — |
-| **UI Library** | Element Plus | — |
-| **HTTP Client** | Axios | — |
-| **AI-Assisted Development** | [Trae CN](https://www.trae.ai/) / AI Agent | — |
+| Layer                       | Technology                                              | Version                                         |
+| --------------------------- | ------------------------------------------------------- | ----------------------------------------------- |
+| **Backend Framework**       | Spring Boot                                             | 4.0.6                                           |
+| **Language**                | JDK                                                     | 21 (Records, Pattern Matching, Virtual Threads) |
+| **ORM**                     | Spring Data JPA + Hibernate                             | Community Dialect 7.2.12.Final                  |
+| **Authentication**          | JWT (JSON Web Token)                                    | —                                               |
+| **Code Generator**          | Lombok                                                  | —                                               |
+| **Database**                | SQLite (xerial JDBC driver)                             | —                                               |
+| **Build Tool**              | Maven                                                   | 3.9+                                            |
+| **Frontend Framework**      | Vue 3 (Composition API + `<script setup>`)              | —                                               |
+| **Frontend Build**          | Vite                                                    | Latest Stable                                   |
+| **Frontend Router**         | Vue Router                                              | 4                                               |
+| **State Management**        | Pinia                                                   | —                                               |
+| **UI Library**              | Element Plus                                            | —                                               |
+| **HTTP Client**             | Axios                                                   | —                                               |
+| **AI-Assisted Development** | [Trae CN](https://www.trae.ai/) / Qwen3.7 MAX / GLM 5.1 | —                                               |
 
 > The backend is fully implemented and production-ready. The Vue 3 frontend is pending creation.
 
----
+***
 
 ## Architecture
 
 ### Overall Design
 
+```mermaid
+graph TD
+    subgraph Frontend["🖥️ Frontend Layer (Vue 3)"]
+        direction LR
+        F1["Vue Router 4"]
+        F2["Pinia State"]
+        F3["Element Plus UI"]
+        F4["Axios HTTP"]
+    end
+
+    subgraph Backend["⚙️ Backend Layer (Spring Boot 4)"]
+        direction TB
+        C["📡 Controller\n(Routing & Validation)"]
+        S["🧩 Service\n(Business Logic)"]
+        R["🗄️ Repository\n(Data Access)"]
+
+        subgraph Common["🔧 Common Infrastructure"]
+            direction LR
+            C1["Result<T> / PageResult<T>"]
+            C2["Global Exception Handler"]
+            C3["JWT Auth & @RequireRole"]
+        end
+    end
+
+    subgraph Database["💾 Data Layer (SQLite)"]
+        direction LR
+        T1["user"]
+        T2["question"]
+        T3["exam"]
+        T4["score"]
+    end
+
+    Frontend -->|"RESTful API /api/v1/\nJWT Bearer Token"| Backend
+    C --> S
+    S --> R
+    Common -.-> C
+    Common -.-> S
+    R --> Database
 ```
-┌─────────────────────────────────────────────────────┐
-│                    Frontend (Vue 3)                  │
-│   Vue Router + Pinia + Element Plus + Axios          │
-└──────────────────────┬──────────────────────────────┘
-                       │ RESTful API (/api/v1/)
-                       │ JWT Bearer Token
-┌──────────────────────▼──────────────────────────────┐
-│                  Backend (Spring Boot 4)             │
-│  ┌────────────┐  ┌────────────┐  ┌──────────────┐  │
-│  │ Controller │→ │  Service   │→ │ Repository   │  │
-│  │ (Routing)  │  │ (Business) │  │ (Data Access)│  │
-│  └────────────┘  └────────────┘  └──────┬───────┘  │
-│                                          │          │
-│  ┌──────────────────────────────────────┐│          │
-│  │  Common Layer                         │          │
-│  │  Result<T>, PageResult<T>             │          │
-│  │  GlobalExceptionHandler               │          │
-│  │  JwtUtil, Interceptor, @RequireRole   │          │
-│  └──────────────────────────────────────┘          │
-└──────────────────────┬─────────────────────────────┘
-                       │
-┌──────────────────────▼─────────────────────────────┐
-│                   SQLite Database                   │
-│  user | question | exam | score  (4 independent)   │
-└────────────────────────────────────────────────────┘
+
+### Data Flow
+
+```mermaid
+flowchart LR
+    subgraph Teacher["👨‍🏫 Teacher / Admin"]
+        Q["Manage Questions"]
+        E["Assemble Exam"]
+    end
+
+    subgraph System["🔄 System Processing"]
+        QB["Question Bank\n(5 Types)"]
+        AS["Auto/Manual\nAssembly"]
+        EX["Exam Lifecycle\ndraft → publish → running → done"]
+    end
+
+    subgraph Student["👨‍🎓 Student"]
+        TK["Take Exam"]
+        SC["View Scores"]
+        MS["Mistake Review"]
+    end
+
+    subgraph Analytics["📊 Analytics Engine"]
+        GR["Auto Grading\n+ Essay Review"]
+        RP["Reports\nPass Rate / Distribution\nQuality Analysis"]
+    end
+
+    Q --> QB
+    E --> AS
+    AS --> EX
+    EX --> TK
+    TK --> SC
+    SC --> MS
+    TK --> GR
+    GR --> RP
 ```
 
 ### Key Design Patterns
@@ -138,18 +189,18 @@ The system supports **three distinct roles** (Student / Teacher / Admin), each w
 - **4-Table Independent Architecture** — No JPA `@ManyToOne`/`@OneToMany` relationships; cross-table queries use `findAllById` batch loading, eliminating N+1 query risks entirely
 - **Snapshot-Based Exam Assembly** — The `question_sum` JSON field captures a point-in-time snapshot of selected questions, so subsequent question modifications don't retroactively affect existing exams
 
----
+***
 
 ## Quick Start
 
 ### Prerequisites
 
-| Requirement | Version |
-|-------------|---------|
-| JDK | 21+ |
-| Node.js | 24.15.0+ |
-| Maven | 3.9+ |
-| Git | Latest |
+| Requirement | Version  |
+| ----------- | -------- |
+| JDK         | 21+      |
+| Node.js     | 24.15.0+ |
+| Maven       | 3.9+     |
+| Git         | Latest   |
 
 ### Backend
 
@@ -189,7 +240,7 @@ npm install
 npm run dev
 ```
 
----
+***
 
 ## Project Structure
 
@@ -231,24 +282,24 @@ GDUT-OOP_20260601/
 └── LICENSE
 ```
 
----
+***
 
 ## Documentation
 
 Detailed technical documentation is available in the `wiki/` directory:
 
-| Document | Description |
-|----------|-------------|
-| [00-INDEX.md](wiki/00-INDEX.md) | Master index, project overview, module navigation |
-| [01-Global-Standards.md](wiki/01-Global-Standards.md) | API contracts, exception handling, JPA specs, code layering |
-| [02-Data-Dictionary.md](wiki/02-Data-Dictionary.md) | Database schema, entity mapping, JSON field specifications |
-| [M01-User-Auth.md](wiki/modules/M01-User-Auth.md) | User authentication & permission management |
-| [M02-Question-Bank.md](wiki/modules/M02-Question-Bank.md) | Question bank CRUD & polymorphic answer JSON |
-| [M03-Exam-Assembly.md](wiki/modules/M03-Exam-Assembly.md) | Exam lifecycle, manual/automatic assembly strategies |
-| [M04-Score-Statistics.md](wiki/modules/M04-Score-Statistics.md) | Scoring, grading, statistics & reporting |
-| [SQLite-Optimization.md](wiki/references/SQLite-Optimization.md) | SQLite-specific tuning & pitfalls in JPA context |
+| Document                                                         | Description                                                 |
+| ---------------------------------------------------------------- | ----------------------------------------------------------- |
+| [00-INDEX.md](wiki/00-INDEX.md)                                  | Master index, project overview, module navigation           |
+| [01-Global-Standards.md](wiki/01-Global-Standards.md)            | API contracts, exception handling, JPA specs, code layering |
+| [02-Data-Dictionary.md](wiki/02-Data-Dictionary.md)              | Database schema, entity mapping, JSON field specifications  |
+| [M01-User-Auth.md](wiki/modules/M01-User-Auth.md)                | User authentication & permission management                 |
+| [M02-Question-Bank.md](wiki/modules/M02-Question-Bank.md)        | Question bank CRUD & polymorphic answer JSON                |
+| [M03-Exam-Assembly.md](wiki/modules/M03-Exam-Assembly.md)        | Exam lifecycle, manual/automatic assembly strategies        |
+| [M04-Score-Statistics.md](wiki/modules/M04-Score-Statistics.md)  | Scoring, grading, statistics & reporting                    |
+| [SQLite-Optimization.md](wiki/references/SQLite-Optimization.md) | SQLite-specific tuning & pitfalls in JPA context            |
 
----
+***
 
 ## Contributing & Acknowledgements
 
@@ -271,13 +322,13 @@ Contributions are welcome! Please feel free to submit an Issue or open a Pull Re
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
----
+***
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
 
----
+***
 
 <p align="center">
   Made with ❤️ by the GDUT OOP Team
