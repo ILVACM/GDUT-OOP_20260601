@@ -416,7 +416,7 @@ This project is licensed under the [MIT License](LICENSE).
 ***
 
 <p align="center">
-  ❤️❤️❤️ 
-  Developed by an ordinary student majoring in software engineering at the School of Computer Science of Guangdong University of Technology 
-  ❤️❤️❤️
+  ❤️❤️❤️   
+  Developed by an ordinary student majoring in software engineering at the School of Computer Science of Guangdong University of Technology   
+  ❤️❤️❤️  
 </p>
