@@ -1,0 +1,34 @@
+graph TD
+    subgraph M03组卷与考试管理子系统
+        UC01[UC-M03-01 创建手动组卷考试]
+        UC02[UC-M03-02 创建自动组卷考试]
+        UC03[UC-M03-03 获取可参加考试列表]
+        UC04[UC-M03-04 获取考试详情]
+        UC05[UC-M03-05 学生预览考试]
+        UC06[UC-M03-06 修改考试]
+        UC07[UC-M03-07 发布考试]
+        UC08[UC-M03-08 撤回考试]
+        UC09[UC-M03-09 删除考试]
+        UC10[UC-M03-10 分页查询考试列表]
+    end
+
+    Student((学生)) --> UC03
+    Student --> UC05
+
+    Teacher((教师)) --> UC01
+    Teacher --> UC02
+    Teacher --> UC04
+    Teacher --> UC06
+    Teacher --> UC07
+    Teacher --> UC08
+    Teacher --> UC09
+    Teacher --> UC10
+
+    Admin((管理员)) --> UC01
+    Admin --> UC02
+    Admin --> UC04
+    Admin --> UC06
+    Admin --> UC07
+    Admin --> UC08
+    Admin --> UC09
+    Admin --> UC10

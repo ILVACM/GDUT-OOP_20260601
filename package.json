@@ -1,0 +1,25 @@
+{
+  "name": "gdut-oop_20260601",
+  "version": "1.0.0",
+  "description": "<p align=\"center\">   <img src=\"Data/Vue/logo.png\" alt=\"Online Learning System Logo\" width=\"180\" /> </p>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "mermaid": "node scripts/mermaid-to-image.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ILVACM/GDUT-OOP_20260601.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ILVACM/GDUT-OOP_20260601/issues"
+  },
+  "homepage": "https://github.com/ILVACM/GDUT-OOP_20260601#readme",
+  "dependencies": {
+    "playwright": "^1.60.0"
+  }
+}
